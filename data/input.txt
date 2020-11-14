@@ -1,0 +1,16 @@
+# Each line starts with a keyword:
+# - TEXTURE <texture file>
+# - MESH <obj file> <skin file> <texture file>
+# - SKELETON <skeleton file>
+# Alpha blending is used to render the mouth, eyes, and brows. Since the brows mesh covers the eyes mesh,
+# the brows mesh should be rendered after the eyes mesh.
+TEXTURE file1.jpg
+TEXTURE MouthMAP.png
+MESH bigvegas_Walking_newVegas_Elvis_BodyGeo.obj bigvegas_Walking_newVegas_Elvis_BodyGeo_skin.txt file1.jpg
+MESH bigvegas_Walking_newVegas_Elvis_MouthAnimGeo.obj bigvegas_Walking_newVegas_Elvis_MouthAnimGeo_skin.txt MouthMAP.png
+MESH bigvegas_Walking_newVegas_Elvis_EyesAnimGeo.obj bigvegas_Walking_newVegas_Elvis_EyesAnimGeo_skin.txt MouthMAP.png
+MESH bigvegas_Walking_newVegas_Elvis_BrowsAnimGeo.obj bigvegas_Walking_newVegas_Elvis_BrowsAnimGeo_skin.txt MouthMAP.png
+#SKELETON bigvegas_Walking_skel.txt
+#SKELETON bigvegas_Walking_skel2.txt
+#SKELETON throw_skel.txt
+SKELETON bigvegas_Capoeira_skel.txt

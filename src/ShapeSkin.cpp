@@ -155,6 +155,32 @@ void ShapeSkin::init()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+
+
+    //// Send texture matrix
+    //glUniformMatrix3fv(prog->getUniform("T"), 1, GL_FALSE, glm::value_ptr(T->getMatrix()));
+
+    //int h_pos = prog->getAttribute("aPos");
+    //glEnableVertexAttribArray(h_pos);
+    //glBindBuffer(GL_ARRAY_BUFFER, posBufID);
+    //glVertexAttribPointer(h_pos, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+
+    //int h_nor = prog->getAttribute("aNor");
+    //glEnableVertexAttribArray(h_nor);
+    //glBindBuffer(GL_ARRAY_BUFFER, norBufID);
+    //glVertexAttribPointer(h_nor, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+
+    //int h_tex = prog->getAttribute("aTex");
+    //glEnableVertexAttribArray(h_tex);
+    //glBindBuffer(GL_ARRAY_BUFFER, texBufID);
+    //glVertexAttribPointer(h_tex, 2, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+
+    //glDisableVertexAttribArray(h_nor);
+    //glDisableVertexAttribArray(h_pos);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    ////glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
     GLSL::checkError(GET_FILE_LINE);
 }
 

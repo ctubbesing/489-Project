@@ -192,48 +192,6 @@ static void init()
     camera = make_shared<Camera>();
     camera->setInitDistance(40.0f);
 
-    /*////////////////////////////////////////////////////temp skin hard coding
-    //DATA_DIR = "../data/";
-    auto skin = make_shared<ShapeSkin>();
-    shapes.push_back(skin);
-    skin->setTextureMatrixType("bigvegas_Walking_newVegas_Elvis_BodyGeo.obj");
-    skin->loadMesh(DATA_DIR + "bigvegas_Walking_newVegas_Elvis_BodyGeo.obj");
-    skin->loadAttachment(DATA_DIR + "bigvegas_Walking_newVegas_Elvis_BodyGeo_skin.txt");
-    skin->setTextureFilename("file1.jpg");
-
-    // For skinned shape, CPU/GPU
-    progSkin = make_shared<Program>();
-    progSkin->setShaderNames(RESOURCE_DIR + "skin_vert.glsl", RESOURCE_DIR + "skin_frag.glsl");
-    progSkin->setVerbose(true);
-    progSkin->init();
-    progSkin->addAttribute("aPos");
-    progSkin->addAttribute("aNor");
-    progSkin->addAttribute("aTex");
-    progSkin->addUniform("P");
-    progSkin->addUniform("MV");
-    progSkin->addUniform("ka");
-    progSkin->addUniform("ks");
-    progSkin->addUniform("s");
-    progSkin->addUniform("kdTex");
-    progSkin->addUniform("T");
-
-    // Bind the texture to unit 1.
-    int unit = 1;
-    progSkin->bind();
-    glUniform1i(progSkin->getUniform("kdTex"), unit);
-    progSkin->unbind();
-
-    string filename = "file1.jpg";
-    auto textureKd = make_shared<Texture>();
-    textureMap[filename] = textureKd;
-    textureKd->setFilename(DATA_DIR + filename);
-    textureKd->init();
-    textureKd->setUnit(unit); // Bind to unit 1
-    textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
-
-    shapes[0]->init();
-    ////////////////////////////////////////////////////*/
-
     // Create skin shapes
     for (const auto &mesh : dataInput.meshData) {
         auto shape = make_shared<ShapeSkin>();
@@ -304,10 +262,6 @@ static void init()
 
     scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, false);
 
-    for (auto shape : shapes) {
-        shape->init();
-    }
-
     /////////////////////////////////////////////////////////////////////
     pmShape = make_shared<Shape>();
     pmShape->setProgram(progShapes);
@@ -333,6 +287,11 @@ static void init()
         textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
     }
     
+    for (auto shape : shapes) {
+        shape->setProgram(progSkin);
+        shape->init();
+    }
+
     // set background color
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     // enable z-buffer test
@@ -494,7 +453,7 @@ void render()
             glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
             glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
             glUniform1f(progSkin->getUniform("s"), 200.0f);
-            shape->setProgram(progSkin);
+            //shape->setProgram(progSkin);
             shape->update(frame, bindPose, frames[frame]);
             shape->draw(frame);
             progSkin->unbind();

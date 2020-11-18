@@ -22,6 +22,7 @@ public:
     void generateTerrain(bool flat = false);
     float getAltitude(float x, float z);
     glm::vec3 getPoint(int x, int z = -1);
+    float getSize() { return edgeLength; }
 
     void draw(std::shared_ptr<MatrixStack> MV, const std::shared_ptr<Program> p);
 
@@ -32,6 +33,8 @@ private:
 
     std::vector<unsigned int> eleBuf;
     unsigned eleBufID;
+
+    float randFloat(float l, float h);
 };
 
 #endif

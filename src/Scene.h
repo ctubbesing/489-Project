@@ -21,6 +21,7 @@ public:
     void generateScene(bool flat = false);
     float getAltitude(float x, float z) { return terrain->getAltitude(x, z); }
     const std::shared_ptr<Terrain> getTerrain() { return terrain; }
+    float getSize() { return terrain->getSize(); }
 
     void draw(std::shared_ptr<MatrixStack> MV, const std::shared_ptr<Program> p_terrain);
 

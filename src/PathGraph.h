@@ -29,11 +29,16 @@ struct PathNode
 class PathGraph
 {
 public:
-    PathGraph();
+    //PathGraph();
+    PathGraph(std::shared_ptr<Scene> scene_);
     virtual ~PathGraph();
-    void regenerate(std::shared_ptr<Scene> scene);
+    void regenerate();
     std::vector< std::shared_ptr<PathNode> > findPath(std::shared_ptr<PathNode> start, std::shared_ptr<PathNode> goal);
-    void draw(std::shared_ptr<MatrixStack> MV, std::vector< std::shared_ptr<PathNode> > path = std::vector< std::shared_ptr<PathNode> >());
+    void setSimpleProgram(std::shared_ptr<Program> p) { simpleProg = p; }
+    void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
+    void setShape(std::shared_ptr<Shape> shape) { PmShape = shape; }
+
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector< std::shared_ptr<PathNode> > path = std::vector< std::shared_ptr<PathNode> >());
 
 private:
     std::vector< std::shared_ptr<PathNode> > nodes;
@@ -41,6 +46,8 @@ private:
     std::shared_ptr<Program> simpleProg;
     std::shared_ptr<Program> shapeProg;
     std::shared_ptr<Shape> PmShape;
+
+    float randFloat(float l, float h);
 };
 
 #endif

@@ -103,7 +103,7 @@ void Terrain::generateTerrain(bool flat)
     if (!flat) {
         // randomize x & z
 
-        rows = 15;////////////////////////////////////////////////////////////////////////////////////////////////
+        //rows = 15;////////////////////////////////////////////////////////////////////////////////////////////////
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
@@ -113,22 +113,22 @@ void Terrain::generateTerrain(bool flat)
                 if (j != 0 && j != cols - 1) {
                     // make sure vertex isn't inside neighboring triangle
                     float l = -dx / 2;
-                    if (i > 0) {
-                        float c = (landMat[i][j].z - landMat[i][j - 1].z) / (landMat[i - 1][j].z - landMat[i][j - 1].z);
-                        float xmin = c * (landMat[i - 1][j].x - landMat[i][j - 1].x) + landMat[i][j - 1].x;
-                        l = ((landMat[i][j].x - dx / 2) >= xmin ? (-dx / 2) : (landMat[i][j].x - xmin));
-                    }
+                    //if (i > 0) {
+                    //    float c = (landMat[i][j].z - landMat[i][j - 1].z) / (landMat[i - 1][j].z - landMat[i][j - 1].z);
+                    //    float xmin = c * (landMat[i - 1][j].x - landMat[i][j - 1].x) + landMat[i][j - 1].x;
+                    //    l = ((landMat[i][j].x - dx / 2) >= xmin ? (-dx / 2) : (landMat[i][j].x - xmin));
+                    //}
 
                     landMat[i][j].x += randFloat(l, dx / 2);
                 }
 
                 /////////////////////////////////// temp
-                //landMat[i][j].y = randFloat(0.0f, 0.4f);
-                //if (i < rows / 4) landMat[i][j].y += 16.0f;
-                //int iMid = i - edgeLength / 2;
-                //int jMid = j - edgeLength / 2;
-                //float dist = 0.5 * sqrt(iMid * iMid + jMid * jMid) - 8.5f;
-                //if (j < cols / 3) landMat[i][j].y += dist;
+                landMat[i][j].y = randFloat(0.0f, 0.4f);
+                if (i < rows / 4) landMat[i][j].y += 16.0f;
+                int iMid = i - edgeLength / 2;
+                int jMid = j - edgeLength / 2;
+                float dist = 0.5 * sqrt(iMid * iMid + jMid * jMid) - 8.5f;
+                if (j < cols / 3) landMat[i][j].y += dist;
                 /////////////////////////////////// temp
             }
         }

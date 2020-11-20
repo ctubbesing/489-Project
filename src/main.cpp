@@ -43,8 +43,8 @@ GLFWwindow *window; // Main application window
 string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
-int TERRAIN_CELLS = 100; // 100;
-bool flatTerrain = false;
+int TERRAIN_CELLS = 1; // 100;
+bool flatTerrain = true;
 
 shared_ptr<Camera> camera = NULL;
 shared_ptr<Program> progSimple = NULL;
@@ -425,20 +425,20 @@ void render()
     glUniformMatrix4fv(progSimple->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
     float gridSizeHalf = 50.0f;
-    int gridNx = 101;
-    int gridNz = 101;
+    int gridNx = 21;
+    int gridNz = 21;
     glLineWidth(1);
     glColor3f(0.8f, 0.8f, 0.8f);
     glBegin(GL_LINES);
     for (int i = 0; i < gridNx; ++i) {
         float alpha = i / (gridNx - 1.0f);
-        float x = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf         -0.5f;///////////////////////////////////////
+        float x = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf;///////////////////////////////////////
         glVertex3f(x, 0, -gridSizeHalf);
         glVertex3f(x, 0, gridSizeHalf);
     }
     for (int i = 0; i < gridNz; ++i) {
         float alpha = i / (gridNz - 1.0f);
-        float z = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf         -0.5f;
+        float z = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf;
         glVertex3f(-gridSizeHalf, 0, z);
         glVertex3f(gridSizeHalf, 0, z);
     }
@@ -469,6 +469,19 @@ void render()
                 MV->popMatrix();
             }
         }
+
+        
+        ////////////////////////////////////////////////////////////////
+        //MV->pushMatrix();
+        //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
+        //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+        //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+        //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+        //pmShape->draw();
+        //MV->popMatrix();
+        ////////////////////////////////////////////////////////////////
+
+
 
         MV->popMatrix();
         progShapes->unbind();

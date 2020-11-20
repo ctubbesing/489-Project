@@ -19,11 +19,22 @@ class Shape;
 class MatrixStack;
 class Program;
 
-struct PathNode
+struct PathNode : std::enable_shared_from_this<PathNode>
 {
     PathNode(glm::vec3 pos_) : pos(pos_) {}
     glm::vec3 pos;
     std::vector < std::shared_ptr<PathNode> > neighbors;
+
+    void addNeighbor(std::shared_ptr<PathNode> n)
+    {
+        for (auto node : neighbors) {
+            if (n == node) {
+                return;
+            }
+        }
+        neighbors.push_back(n);
+        n->addNeighbor(shared_from_this());
+    }
 };
 
 class PathGraph
@@ -41,7 +52,8 @@ public:
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector< std::shared_ptr<PathNode> > path = std::vector< std::shared_ptr<PathNode> >());
 
 private:
-    std::vector< std::shared_ptr<PathNode> > nodes;
+    std::vector< std::vector< std::shared_ptr<PathNode> > > nodes;
+    //std::vector< std::shared_ptr<PathNode> > nodes;
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Program> simpleProg;
     std::shared_ptr<Program> shapeProg;

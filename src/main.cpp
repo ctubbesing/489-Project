@@ -94,6 +94,9 @@ static void char_callback(GLFWwindow *window, unsigned int key)
         case (unsigned)'s':
             pg->updateStart(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
             break;
+        case (unsigned)'g':
+            pg->updateGoal(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
+            break;
     }
 }
 

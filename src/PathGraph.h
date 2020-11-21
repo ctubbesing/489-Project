@@ -85,6 +85,7 @@ private:
     std::shared_ptr<Shape> PmShape;
 
     float randFloat(float l, float h);
+    void printNodeData(std::shared_ptr<PathNode> node);
 };
 
 #endif

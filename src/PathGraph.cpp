@@ -5,6 +5,7 @@
 #include "MatrixStack.h"
 
 #include <iostream>
+#include <queue>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -12,7 +13,6 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 
 using namespace std;
 
@@ -216,11 +216,61 @@ void PathGraph::clear35(){
 }
 ////////////////////////////////////////////////////////////
 
-vector< shared_ptr<PathNode> > PathGraph::findPath(shared_ptr<PathNode> start, shared_ptr<PathNode> goal)
+// struct for A* to track branches
+struct AStarBranch
 {
+    AStarBranch(std::vector< std::shared_ptr<PathNode> > _path, float _g = 0) : path(_path)
+    {
 
+    }
 
-    return vector< shared_ptr<PathNode> >();
+    std::vector< std::shared_ptr<PathNode> > path;
+    float g;
+    float f;
+};
+
+// struct for priority queue to order elements
+struct BranchCompare
+{
+    bool operator()(const AStarBranch &a, const AStarBranch &b)
+    {
+        return a.f <= b.f;
+    }
+};
+
+vector< shared_ptr<PathNode> > PathGraph::findPath()
+{
+    // return empty path if start or goal is not available
+    if (start == NULL || goal == NULL) {
+        return vector< shared_ptr<PathNode> >();
+    }
+
+    // do A* search from start to goal
+    vector< shared_ptr<PathNode> > startPath;
+    startPath.push_back(start);
+    AStarBranch startBranch(startPath);
+    priority_queue<AStarBranch, vector<AStarBranch>, BranchCompare> pq;
+    pq.push(startBranch);
+
+    shared_ptr<AStarBranch> currentBranch = make_shared<AStarBranch>(pq.top());
+    pq.pop();
+    while (currentBranch->path.back() != goal && !pq.empty()) {
+        // expand current branch
+        for (auto node : currentBranch->path.back()->neighbors) {
+
+        }
+
+        // go to next branch in pq
+        currentBranch = make_shared<AStarBranch>(pq.top());
+        pq.pop();
+    }
+
+    if (currentBranch->path.back() != goal) {
+        // no path from start to goal exists
+        cout << "PathGraph::findPath(): No path from start to goal exists." << endl;
+    }
+
+    return currentBranch->path;
 }
 
 void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector< shared_ptr<PathNode> > path)

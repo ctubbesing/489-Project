@@ -38,7 +38,7 @@ void PathGraph::regenerate()
     nodes.clear();
 
     float edgeLength = scene->getSize();
-    int n = ceil(edgeLength / 5);
+    int n = ceil(edgeLength / 10);
     //int n = edgeLength / 5;
     //nodes.reserve(n);
 
@@ -49,7 +49,7 @@ void PathGraph::regenerate()
     float pos0 = -edgeLength / 2 + dx / 2;
     for (int i = 0; i < n; i++) {
         vector < shared_ptr<PathNode> > thisRow(n);
-        
+
         for (int j = 0; j < n; j++) {
             // create new node
             float posX = dx * j;
@@ -82,9 +82,17 @@ void PathGraph::regenerate()
         nodes.push_back(thisRow);
     }
 }
+////////////////////////////////////////////////////////////
+void PathGraph::clear35(){
+    nodes[3][5]->clearNeighbors();
+    nodes[3][5] = nullptr;
+}
+////////////////////////////////////////////////////////////
 
 vector< shared_ptr<PathNode> > PathGraph::findPath(shared_ptr<PathNode> start, shared_ptr<PathNode> goal)
 {
+
+
     return vector< shared_ptr<PathNode> >();
 }
 
@@ -117,15 +125,16 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         glUniform3f(shapeProg->getUniform("kd"), rW*randColor, gW*randColor, bW*randColor);
         auto nodeRow = nodes[i];
         for (auto node : nodeRow) {
+            if (node != NULL) {
+                MV->pushMatrix();
 
-            MV->pushMatrix();
+                MV->translate(node->pos);
+                MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+                glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+                PmShape->draw();
 
-            MV->translate(node->pos);
-            MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-            glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-            PmShape->draw();
-
-            MV->popMatrix();
+                MV->popMatrix();
+            }
         }
     }
 
@@ -146,12 +155,14 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
             //float x = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf;
 
             auto node = nodes[i][j];
-            glm::vec3 pos0 = node->pos;
-            for (auto neighbor : node->neighbors) {
-                glm::vec3 pos1 = neighbor->pos;
+            if (node != NULL) {
+                glm::vec3 pos0 = node->pos;
+                for (auto neighbor : node->neighbors) {
+                    glm::vec3 pos1 = neighbor->pos;
 
-                glVertex3f(pos0.x, pos0.y, pos0.z);
-                glVertex3f(pos1.x, pos1.y, pos1.z);
+                    glVertex3f(pos0.x, pos0.y, pos0.z);
+                    glVertex3f(pos1.x, pos1.y, pos1.z);
+                }
             }
         }
     }

@@ -82,6 +82,9 @@ static void char_callback(GLFWwindow *window, unsigned int key)
         case (unsigned)'p':
             pg->regenerate();
             break;
+        case (unsigned)'t':
+            pg->clear35();
+            break;
     }
 }
 
@@ -425,8 +428,8 @@ void render()
     glUniformMatrix4fv(progSimple->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
     float gridSizeHalf = 50.0f;
-    int gridNx = 21;
-    int gridNz = 21;
+    int gridNx = 11;
+    int gridNz = 11;
     glLineWidth(1);
     glColor3f(0.8f, 0.8f, 0.8f);
     glBegin(GL_LINES);

@@ -35,6 +35,22 @@ struct PathNode : std::enable_shared_from_this<PathNode>
         neighbors.push_back(n);
         n->addNeighbor(shared_from_this());
     }
+    
+    void removeNeighbor(std::shared_ptr<PathNode> n) {
+        auto index = std::find< std::vector< std::shared_ptr<PathNode> >::iterator, std::shared_ptr<PathNode> >(neighbors.begin(), neighbors.end(), n);
+        if (index != neighbors.end()) {
+            neighbors.erase(index);
+        }
+    }
+
+    void clearNeighbors()
+    {
+        // unlink all neighbors from this node
+        for (auto node : neighbors) {
+            node->removeNeighbor(shared_from_this());
+        }
+        neighbors.clear();
+    }
 };
 
 class PathGraph
@@ -51,8 +67,13 @@ public:
 
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector< std::shared_ptr<PathNode> > path = std::vector< std::shared_ptr<PathNode> >());
 
+    ///////////////////////////////////////////////////
+    void clear35();
+    ///////////////////////////////////////////////////
 private:
     std::vector< std::vector< std::shared_ptr<PathNode> > > nodes;
+    std::shared_ptr<PathNode> start;
+    std::shared_ptr<PathNode> goal;
     //std::vector< std::shared_ptr<PathNode> > nodes;
     std::shared_ptr<Scene> scene;
     std::shared_ptr<Program> simpleProg;

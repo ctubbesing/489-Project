@@ -16,8 +16,11 @@
 
 using namespace std;
 
-PathGraph::PathGraph(shared_ptr<Scene> scene_) :
-    scene(scene_)
+PathGraph::PathGraph(shared_ptr<Scene> scene_, int unitsPerNode_) :
+    scene(scene_),
+    unitsPerNode(unitsPerNode_),
+    start(NULL),
+    goal(NULL)
 {
     regenerate();
 }
@@ -38,14 +41,9 @@ void PathGraph::regenerate()
     nodes.clear();
 
     float edgeLength = scene->getSize();
-    int n = ceil(edgeLength / 10);
-    //int n = edgeLength / 5;
-    //nodes.reserve(n);
-
-    cout << "PathGraph::regenerate(): edgeLength = " << edgeLength << endl;
-    cout << "PathGraph::regenerate(): n = " << n << endl;
-
+    int n = ceil(edgeLength / unitsPerNode);
     float dx = edgeLength / n;
+
     float pos0 = -edgeLength / 2 + dx / 2;
     for (int i = 0; i < n; i++) {
         vector < shared_ptr<PathNode> > thisRow(n);
@@ -54,13 +52,9 @@ void PathGraph::regenerate()
             // create new node
             float posX = dx * j;
             float posZ = dx * i;
-
-            //float randX = randFloat(-dx / 2, dx / 2);
-            //float randZ = randFloat(-dx / 2, dx / 2);
             posX += randFloat(-dx / 2, dx / 2);
             posZ += randFloat(-dx / 2, dx / 2);
 
-            //glm::vec3 pos(pos0 + posX + randX, 0.0f, pos0 + posZ + randZ);
             glm::vec3 pos(pos0 + posX, 0.0f, pos0 + posZ);
             auto newNode = make_shared<PathNode>(pos);
             thisRow[j] = newNode;
@@ -82,6 +76,46 @@ void PathGraph::regenerate()
         nodes.push_back(thisRow);
     }
 }
+
+void PathGraph::regenerate(glm::vec3 start_, glm::vec3 goal_)
+{
+    regenerate();
+
+    updateStart(start_);
+    updateGoal(goal_);
+}
+
+void PathGraph::updateStart(glm::vec3 pos)
+{
+    // update old start
+    if (start != NULL) {
+        start->clearNeighbors();
+        start->pos = pos;
+    }
+    else {
+        start = make_shared<PathNode>(pos);
+    }
+
+    // link to new neighbors
+    float edgeLength = scene->getSize();
+    int n = ceil(edgeLength / unitsPerNode);
+    float dx = edgeLength / n;
+
+    int row = floor((pos.z - edgeLength / 2) / dx);
+    int col = floor((pos.x - edgeLength / 2) / dx);
+
+    shared_ptr<PathNode> mainNode = nodes[row][col];
+    start->addNeighbor(mainNode);
+    for (auto node : mainNode->neighbors) {
+        start->addNeighbor(node);
+    }
+}
+
+void PathGraph::updateGoal(glm::vec3 pos)
+{
+
+}
+
 ////////////////////////////////////////////////////////////
 void PathGraph::clear35(){
     nodes[3][5]->clearNeighbors();
@@ -168,9 +202,40 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
     }
 
     glEnd();
+    simpleProg->unbind();
+
+    // draw start & goal
+    if (start != NULL) {
+        // draw shape
+        shapeProg->bind();
+
+        glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+        glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.5f, 0.0f);
+        glUniform3f(shapeProg->getUniform("kd"), 0.7f, 0.7f, 0.0f);
+
+        MV->pushMatrix();
+
+        MV->translate(start->pos);
+        MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+        glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+
+        PmShape->draw();
+
+        MV->popMatrix();
+
+        shapeProg->unbind();
+
+        // draw links
+        simpleProg->bind();
+        simpleProg->unbind();
+    }
+    if (goal != NULL) {
+        // ...
+    }
 
     // draw selected path
     if (path.size() > 0) {
+        simpleProg->bind();
         glLineWidth(10);
         glColor3f(0.8f, 0.4f, 0.4f);
         glBegin(GL_LINES);
@@ -182,7 +247,7 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
             glVertex3f(pos1.x, pos1.y, pos1.z);
         }
         glEnd();
+        simpleProg->unbind();
     }
 
-    simpleProg->unbind();
 }

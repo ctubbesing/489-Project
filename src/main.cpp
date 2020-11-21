@@ -75,6 +75,12 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
     }
 }
 
+float randFloat(float l, float h)
+{
+    float r = rand() / (float)RAND_MAX;
+    return (1.0f - r) * l + r * h;
+}
+
 static void char_callback(GLFWwindow *window, unsigned int key)
 {
     keyToggles[key] = !keyToggles[key];
@@ -84,6 +90,9 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             break;
         case (unsigned)'t':
             pg->clear35();
+            break;
+        case (unsigned)'s':
+            pg->updateStart(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
             break;
     }
 }

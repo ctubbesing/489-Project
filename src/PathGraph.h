@@ -57,9 +57,12 @@ class PathGraph
 {
 public:
     //PathGraph();
-    PathGraph(std::shared_ptr<Scene> scene_);
+    PathGraph(std::shared_ptr<Scene> scene_, int unitsPerNode_ = 10);
     virtual ~PathGraph();
     void regenerate();
+    void regenerate(glm::vec3 start, glm::vec3 goal);
+    void updateStart(glm::vec3 pos);
+    void updateGoal(glm::vec3 pos);
     std::vector< std::shared_ptr<PathNode> > findPath(std::shared_ptr<PathNode> start, std::shared_ptr<PathNode> goal);
     void setSimpleProgram(std::shared_ptr<Program> p) { simpleProg = p; }
     void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
@@ -76,6 +79,7 @@ private:
     std::shared_ptr<PathNode> goal;
     //std::vector< std::shared_ptr<PathNode> > nodes;
     std::shared_ptr<Scene> scene;
+    int unitsPerNode;
     std::shared_ptr<Program> simpleProg;
     std::shared_ptr<Program> shapeProg;
     std::shared_ptr<Shape> PmShape;

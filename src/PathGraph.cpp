@@ -38,11 +38,11 @@ float PathGraph::randFloat(float l, float h)
 
 void PathGraph::regenerate()
 {
-    cout << "Regenerating PathGraph." << endl;
-    cout << "start:" << endl;
-    printNodeData(start);
-    cout << "goal:" << endl;
-    printNodeData(goal);
+    //cout << "Regenerating PathGraph." << endl;
+    //cout << "start:" << endl;
+    //printNodeData(start);
+    //cout << "goal:" << endl;
+    //printNodeData(goal);
 
 
     nodes.clear();
@@ -91,12 +91,12 @@ void PathGraph::regenerate()
         updateGoal(goal->pos);
     }
 
-    cout << "Done regenerating PathGraph." << endl;
-    cout << "start:" << endl;
-    printNodeData(start);
-    cout << "goal:" << endl;
-    printNodeData(goal);
-    cout << endl;
+    //cout << "Done regenerating PathGraph." << endl;
+    //cout << "start:" << endl;
+    //printNodeData(start);
+    //cout << "goal:" << endl;
+    //printNodeData(goal);
+    //cout << endl;
 }
 
 void PathGraph::regenerate(glm::vec3 start_, glm::vec3 goal_)
@@ -132,11 +132,11 @@ void PathGraph::printNodeData(shared_ptr<PathNode> node)
 
 void PathGraph::updateStart(glm::vec3 pos)
 {
-    cout << "Updating start." << endl;
-    cout << "start:" << endl;
-    printNodeData(start);
-    cout << "goal:" << endl;
-    printNodeData(goal);
+    //cout << "Updating start." << endl;
+    //cout << "start:" << endl;
+    //printNodeData(start);
+    //cout << "goal:" << endl;
+    //printNodeData(goal);
 
     // update old start
     if (start != NULL) {
@@ -161,21 +161,21 @@ void PathGraph::updateStart(glm::vec3 pos)
     }
     start->addNeighbor(mainNode);
 
-    cout << "Done updating start." << endl;
-    cout << "start:" << endl;
-    printNodeData(start);
-    cout << "goal:" << endl;
-    printNodeData(goal);
-    cout << endl;
+    //cout << "Done updating start." << endl;
+    //cout << "start:" << endl;
+    //printNodeData(start);
+    //cout << "goal:" << endl;
+    //printNodeData(goal);
+    //cout << endl;
 }
 
 void PathGraph::updateGoal(glm::vec3 pos)
 {
-    cout << "Updating goal." << endl;
-    cout << "start:" << endl;
-    printNodeData(start);
-    cout << "goal:" << endl;
-    printNodeData(goal);
+    //cout << "Updating goal." << endl;
+    //cout << "start:" << endl;
+    //printNodeData(start);
+    //cout << "goal:" << endl;
+    //printNodeData(goal);
 
 
     // update old start
@@ -201,12 +201,12 @@ void PathGraph::updateGoal(glm::vec3 pos)
     }
     goal->addNeighbor(mainNode);
 
-    cout << "Done updating goal." << endl;
-    cout << "start:" << endl;
-    printNodeData(start);
-    cout << "goal:" << endl;
-    printNodeData(goal);
-    cout << endl;
+    //cout << "Done updating goal." << endl;
+    //cout << "start:" << endl;
+    //printNodeData(start);
+    //cout << "goal:" << endl;
+    //printNodeData(goal);
+    //cout << endl;
 }
 
 ////////////////////////////////////////////////////////////
@@ -219,12 +219,31 @@ void PathGraph::clear35(){
 // struct for A* to track branches
 struct AStarBranch
 {
-    AStarBranch(std::vector< std::shared_ptr<PathNode> > _path, float _g = 0) : path(_path)
+    AStarBranch(shared_ptr<PathNode> start) : g(0), f(0)
     {
+        path.push_back(start);
+    }
 
+    AStarBranch(shared_ptr<AStarBranch> oldBranch, shared_ptr<PathNode> newNode, float h)
+    {
+        // set up path
+        path = oldBranch->path;
+        path.push_back(newNode);
+
+        // calculate g & f
+        glm::vec3 pos0 = oldBranch->path.back()->pos;
+        glm::vec3 pos1 = newNode->pos;
+        glm::vec3 dx(pos1 - pos0);
+
+        g = oldBranch->g + (dx.x * dx.x + dx.z * dx.z);
+        f = g + h;
     }
 
     std::vector< std::shared_ptr<PathNode> > path;
+
+    // g(n) = (total distance traveled)^2
+    // h(n) = (direct distance to goal)^2
+    // f(n) = g(n) + h(n)
     float g;
     float f;
 };
@@ -232,9 +251,9 @@ struct AStarBranch
 // struct for priority queue to order elements
 struct BranchCompare
 {
-    bool operator()(const AStarBranch &a, const AStarBranch &b)
+    bool operator()(const shared_ptr<AStarBranch> &a, const shared_ptr<AStarBranch> &b)
     {
-        return a.f <= b.f;
+        return a->f <= b->f;
     }
 };
 
@@ -246,28 +265,29 @@ vector< shared_ptr<PathNode> > PathGraph::findPath()
     }
 
     // do A* search from start to goal
-    vector< shared_ptr<PathNode> > startPath;
-    startPath.push_back(start);
-    AStarBranch startBranch(startPath);
-    priority_queue<AStarBranch, vector<AStarBranch>, BranchCompare> pq;
-    pq.push(startBranch);
-
-    shared_ptr<AStarBranch> currentBranch = make_shared<AStarBranch>(pq.top());
-    pq.pop();
-    while (currentBranch->path.back() != goal && !pq.empty()) {
+    priority_queue<shared_ptr<AStarBranch>, vector< shared_ptr<AStarBranch> >, BranchCompare> pq;
+    shared_ptr<AStarBranch> currentBranch = make_shared<AStarBranch>(start);
+    while (currentBranch->path.back() != goal) {
         // expand current branch
         for (auto node : currentBranch->path.back()->neighbors) {
-
+            glm::vec3 dx(goal->pos - node->pos);
+            float h = dx.x * dx.x + dx.y * dx.y;
+            shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
+            pq.push(newBranch);
         }
 
         // go to next branch in pq
-        currentBranch = make_shared<AStarBranch>(pq.top());
+        currentBranch = pq.top();
         pq.pop();
+        if (pq.empty()) {
+            break;
+        }
     }
 
     if (currentBranch->path.back() != goal) {
         // no path from start to goal exists
         cout << "PathGraph::findPath(): No path from start to goal exists." << endl;
+        return vector< shared_ptr<PathNode> >();
     }
 
     return currentBranch->path;
@@ -406,10 +426,10 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         simpleProg->unbind();
     }
     
-    // --- draw selected path ---
+    // --- draw provided path ---
     if (path.size() > 0) {
         simpleProg->bind();
-        glLineWidth(10);
+        glLineWidth(15);
         glColor3f(0.8f, 0.4f, 0.4f);
         glBegin(GL_LINES);
         for (int i = 0; i < path.size() - 1; i++) {

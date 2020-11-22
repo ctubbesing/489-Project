@@ -61,6 +61,7 @@ double t, t0;
 ///////////////////////////////
 shared_ptr<Shape> pmShape;
 shared_ptr<PathGraph> pg;
+vector< shared_ptr<PathNode> > pgPath;
 ///////////////////////////////
 
 static void error_callback(int error, const char *description)
@@ -93,9 +94,11 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             break;
         case (unsigned)'s':
             pg->updateStart(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
+            pgPath = pg->findPath();
             break;
         case (unsigned)'g':
             pg->updateGoal(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
+            pgPath = pg->findPath();
             break;
     }
 }
@@ -511,7 +514,12 @@ void render()
     progTerrain->unbind();
     
     // draw pg
-    pg->draw(P, MV);
+    if (keyToggles[(unsigned)'a']) {
+        pg->draw(P, MV, pgPath);
+    }
+    else {
+        pg->draw(P, MV);
+    }
 
     // draw characters
     //double fps = 30;

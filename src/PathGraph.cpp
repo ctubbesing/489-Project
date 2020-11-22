@@ -253,43 +253,102 @@ struct BranchCompare
 {
     bool operator()(const shared_ptr<AStarBranch> &a, const shared_ptr<AStarBranch> &b)
     {
-        return a->f <= b->f;
+        return a->f > b->f;
     }
 };
 
+void PathGraph::printBranchData(shared_ptr<AStarBranch> b)
+{
+    string gap = "    ";
+    string str = "  - ";
+    cout << gap << "  Printing data for branch " << b << endl;
+
+    cout << gap << str << "g = " << b->g << endl;
+    cout << gap << str << "f = " << b->f << endl;
+    cout << gap << str << "path: " << endl;
+    for (auto node : b->path) {
+        float edgeLength = scene->getSize();
+        int n = ceil(edgeLength / unitsPerNode);
+        float dx = edgeLength / n;
+
+        int row = floor((node->pos.z + edgeLength / 2) / dx);
+        int col = floor((node->pos.x + edgeLength / 2) / dx);
+
+        cout << gap << gap << str << "(" << row << ", " << col << ")";
+        if (node == start) {
+            cout << " [start]";
+        }
+        if (node == goal) {
+            cout << " [goal]";
+        }
+        cout << endl;
+    }
+}
+
 vector< shared_ptr<PathNode> > PathGraph::findPath()
 {
+    bool doOut = true;
+    string str = "    ";
+    if (doOut)cout << "------------------------------------------------" << endl;
+    if (doOut)cout << str << "Starting findPath()." << endl;
+
     // return empty path if start or goal is not available
     if (start == NULL || goal == NULL) {
+        if (doOut)cout << str << "Either start or goal is unavailable; exiting." << endl;
+        if (doOut)cout << "------------------------------------------------" << endl << endl;
         return vector< shared_ptr<PathNode> >();
     }
 
     // do A* search from start to goal
     priority_queue<shared_ptr<AStarBranch>, vector< shared_ptr<AStarBranch> >, BranchCompare> pq;
     shared_ptr<AStarBranch> currentBranch = make_shared<AStarBranch>(start);
+    if (doOut)cout << str << "currentBranch at the beginning:" << endl;
+    if (doOut)printBranchData(currentBranch);
     while (currentBranch->path.back() != goal) {
+        if (doOut)cout << str << "Beginning while loop." << endl;
+
         // expand current branch
         for (auto node : currentBranch->path.back()->neighbors) {
             glm::vec3 dx(goal->pos - node->pos);
             float h = dx.x * dx.x + dx.y * dx.y;
             shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
             pq.push(newBranch);
+            if (doOut)cout << str << "Adding branch to pq." << endl;
         }
+
+        ///////////////////////////////////////////////
+        if (doOut) {
+            cout << str << "Updated pq: " << endl;
+            for (int i = 0; i < pq.size(); i++) {
+                printBranchData(pq[i]);/////////////////////////////////////doesn't work
+            }
+        }
+        ///////////////////////////////////////////////
 
         // go to next branch in pq
         currentBranch = pq.top();
+        if (doOut)cout << str << "selected next branch to follow:" << endl;
+        if (doOut)printBranchData(currentBranch);
         pq.pop();
         if (pq.empty()) {
+            if (doOut)cout << str << "!!! pq is empty; exiting while loop." << endl;
             break;
         }
+        if (doOut)cout << endl;
     }
 
     if (currentBranch->path.back() != goal) {
         // no path from start to goal exists
         cout << "PathGraph::findPath(): No path from start to goal exists." << endl;
+        if (doOut)cout << str << endl << "Exiting findPath()." << endl;
+        if (doOut)cout << "------------------------------------------------" << endl;
         return vector< shared_ptr<PathNode> >();
     }
 
+    if (doOut)cout << str << " !!!! Optimal branch selected !!!!" << endl;
+    if (doOut)printBranchData(currentBranch);
+    if (doOut)cout << str << endl << "Exiting findPath()." << endl;
+    if (doOut)cout << "------------------------------------------------" << endl << endl << endl;
     return currentBranch->path;
 }
 

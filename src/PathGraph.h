@@ -19,6 +19,10 @@ class Shape;
 class MatrixStack;
 class Program;
 
+////////////////////////////////////////////////
+struct AStarBranch;
+////////////////////////////////////////////////
+
 struct PathNode : std::enable_shared_from_this<PathNode>
 {
     PathNode(glm::vec3 pos_) : pos(pos_) {}
@@ -72,6 +76,8 @@ public:
 
     ///////////////////////////////////////////////////
     void clear35();
+    void printNodeData(std::shared_ptr<PathNode> node);
+    void printBranchData(std::shared_ptr<AStarBranch> b);
     ///////////////////////////////////////////////////
 private:
     std::vector< std::vector< std::shared_ptr<PathNode> > > nodes;
@@ -85,7 +91,6 @@ private:
     std::shared_ptr<Shape> PmShape;
 
     float randFloat(float l, float h);
-    void printNodeData(std::shared_ptr<PathNode> node);
 };
 
 #endif

@@ -62,6 +62,7 @@ double t, t0;
 shared_ptr<Shape> pmShape;
 shared_ptr<PathGraph> pg;
 vector< shared_ptr<PathNode> > pgPath;
+int PG_UNITS_PER_NODE = 25;
 ///////////////////////////////
 
 static void error_callback(int error, const char *description)
@@ -94,11 +95,15 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             break;
         case (unsigned)'s':
             pg->updateStart(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
-            pgPath = pg->findPath();
             break;
         case (unsigned)'g':
             pg->updateGoal(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
+            break;
+        case (unsigned)'f':
             pgPath = pg->findPath();
+            break;
+        case (unsigned)'a':
+            cout << "pgPath drawing " << (keyToggles[(unsigned)'a'] ? "on." : "off.");
             break;
     }
 }
@@ -325,7 +330,6 @@ static void init()
     progSkin->addUniform("T");
 
     scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, flatTerrain);
-    pg = make_shared<PathGraph>(scene);
 
     for (auto shape : shapes) {
         shape->init();
@@ -340,9 +344,17 @@ static void init()
     pmShape->scale(1.5f);
     pmShape->init();
 
+    pg = make_shared<PathGraph>(scene, PG_UNITS_PER_NODE);
     pg->setSimpleProgram(progSimple);
     pg->setShapeProgram(progShapes);
     pg->setShape(pmShape);
+
+
+    pgPath = vector< shared_ptr<PathNode> >();
+    pgPath.push_back(make_shared<PathNode>(glm::vec3(25, 0, 25)));
+    pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 0)));
+    pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 50)));
+    pgPath.push_back(make_shared<PathNode>(glm::vec3(0, 0, 0)));
     /////////////////////////////////////////////////////////////////////
 
         // Bind the texture to unit 1.
@@ -442,9 +454,13 @@ void render()
     progSimple->bind();
     glUniformMatrix4fv(progSimple->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    float gridSizeHalf = 50.0f;
-    int gridNx = 11;
-    int gridNz = 11;
+    int n = ceil(TERRAIN_SIZE / PG_UNITS_PER_NODE);
+    float gridSizeHalf = TERRAIN_SIZE / 2;
+    int gridNx = n + 1;
+    int gridNz = n + 1;
+    //float gridSizeHalf = 50.0f;
+    //int gridNx = 11;
+    //int gridNz = 11;
     glLineWidth(1);
     glColor3f(0.8f, 0.8f, 0.8f);
     glBegin(GL_LINES);

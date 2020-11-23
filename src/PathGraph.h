@@ -77,7 +77,7 @@ public:
     ///////////////////////////////////////////////////
     void clear35();
     void printNodeData(std::shared_ptr<PathNode> node);
-    void printBranchData(std::shared_ptr<AStarBranch> b);
+    void printBranchData(std::shared_ptr<AStarBranch> b, std::string gap = std::string("    "));
     ///////////////////////////////////////////////////
 private:
     std::vector< std::vector< std::shared_ptr<PathNode> > > nodes;

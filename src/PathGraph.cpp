@@ -235,7 +235,8 @@ struct AStarBranch
         glm::vec3 pos1 = newNode->pos;
         glm::vec3 dx(pos1 - pos0);
 
-        g = oldBranch->g + (dx.x * dx.x + dx.z * dx.z);
+        g = oldBranch->g + sqrt(dx.x * dx.x + dx.z * dx.z);
+        //g = oldBranch->g + (dx.x * dx.x + dx.z * dx.z);//////////////////////////////////////////////////////////////////////////////////////////////////
         f = g + h;
     }
 
@@ -257,9 +258,9 @@ struct BranchCompare
     }
 };
 
-void PathGraph::printBranchData(shared_ptr<AStarBranch> b)
+void PathGraph::printBranchData(shared_ptr<AStarBranch> b, string gap)
 {
-    string gap = "    ";
+    string gap2 = "    ";
     string str = "  - ";
     cout << gap << "  Printing data for branch " << b << endl;
 
@@ -274,7 +275,7 @@ void PathGraph::printBranchData(shared_ptr<AStarBranch> b)
         int row = floor((node->pos.z + edgeLength / 2) / dx);
         int col = floor((node->pos.x + edgeLength / 2) / dx);
 
-        cout << gap << gap << str << "(" << row << ", " << col << ")";
+        cout << gap << gap2 << str << "(" << row << ", " << col << ")";
         if (node == start) {
             cout << " [start]";
         }
@@ -287,7 +288,7 @@ void PathGraph::printBranchData(shared_ptr<AStarBranch> b)
 
 vector< shared_ptr<PathNode> > PathGraph::findPath()
 {
-    bool doOut = true;
+    bool doOut = false;
     string str = "    ";
     if (doOut)cout << "------------------------------------------------" << endl;
     if (doOut)cout << str << "Starting findPath()." << endl;
@@ -310,26 +311,22 @@ vector< shared_ptr<PathNode> > PathGraph::findPath()
         // expand current branch
         for (auto node : currentBranch->path.back()->neighbors) {
             glm::vec3 dx(goal->pos - node->pos);
-            float h = dx.x * dx.x + dx.y * dx.y;
+            float h = sqrt(dx.x * dx.x + dx.z * dx.z);///////////////////////////////////////////////////////////////////temp don't need to use sqrt
+            //float h = dx.x * dx.x + dx.z * dx.z;
             shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
             pq.push(newBranch);
-            if (doOut)cout << str << "Adding branch to pq." << endl;
+            if (doOut)cout << str << str << "goal->pos = (" << goal->pos.x << ", " << goal->pos.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
+            //if (doOut)cout << str << str << "dx = (" << dx.x << ", " << dx.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
+            if (doOut)cout << str << str << "Adding branch to pq." << endl;
+            if (doOut)printBranchData(newBranch, string("        "));
         }
-
-        ///////////////////////////////////////////////
-        if (doOut) {
-            cout << str << "Updated pq: " << endl;
-            for (int i = 0; i < pq.size(); i++) {
-                printBranchData(pq[i]);/////////////////////////////////////doesn't work
-            }
-        }
-        ///////////////////////////////////////////////
 
         // go to next branch in pq
         currentBranch = pq.top();
         if (doOut)cout << str << "selected next branch to follow:" << endl;
         if (doOut)printBranchData(currentBranch);
         pq.pop();
+        if (doOut)cout << str << "^^^ Popped that branch from pq." << endl;
         if (pq.empty()) {
             if (doOut)cout << str << "!!! pq is empty; exiting while loop." << endl;
             break;

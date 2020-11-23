@@ -62,7 +62,7 @@ double t, t0;
 shared_ptr<Shape> pmShape;
 shared_ptr<PathGraph> pg;
 vector< shared_ptr<PathNode> > pgPath;
-int PG_UNITS_PER_NODE = 25;
+int PG_UNITS_PER_NODE = 10;
 ///////////////////////////////
 
 static void error_callback(int error, const char *description)
@@ -86,6 +86,7 @@ float randFloat(float l, float h)
 static void char_callback(GLFWwindow *window, unsigned int key)
 {
     keyToggles[key] = !keyToggles[key];
+    glm::vec3 pos;
     switch (key) {
         case (unsigned)'p':
             pg->regenerate();
@@ -94,10 +95,16 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             pg->clear35();
             break;
         case (unsigned)'s':
-            pg->updateStart(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
+            //pos = glm::vec3(-45.156f, 0.0f, 43.152f);
+            pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+            pg->updateStart(pos);
+            pgPath = pg->findPath();
             break;
         case (unsigned)'g':
-            pg->updateGoal(glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2)));
+            //pos = glm::vec3(-6.227f, 0.0f, -40.561f);
+            pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+            pg->updateGoal(pos);
+            pgPath = pg->findPath();
             break;
         case (unsigned)'f':
             pgPath = pg->findPath();

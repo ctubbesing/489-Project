@@ -43,7 +43,7 @@ GLFWwindow *window; // Main application window
 string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
-int TERRAIN_CELLS = 1; // 100;
+int TERRAIN_CELLS = 50; // 100;
 bool flatTerrain = true;
 
 shared_ptr<Camera> camera = NULL;
@@ -111,6 +111,10 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             break;
         case (unsigned)'a':
             cout << "pgPath drawing " << (keyToggles[(unsigned)'a'] ? "on." : "off.");
+            break;
+        case (unsigned)'m':
+            cout << "shade model is " << (keyToggles[(unsigned)'m'] ? "GL_FLAT" : "GL_SMOOTH") << endl;
+            glShadeModel((keyToggles[(unsigned)'m'] ? GL_FLAT : GL_SMOOTH));
             break;
     }
 }
@@ -337,6 +341,7 @@ static void init()
     progSkin->addUniform("T");
 
     scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, flatTerrain);
+    scene->setTerrainProg(progTerrain);
 
     for (auto shape : shapes) {
         shape->init();
@@ -532,7 +537,7 @@ void render()
     progTerrain->bind();
     glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     MV->pushMatrix();
-    scene->draw(MV, progTerrain);
+    scene->draw(MV);
     MV->popMatrix();
     progTerrain->unbind();
     

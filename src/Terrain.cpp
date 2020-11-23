@@ -259,7 +259,7 @@ glm::vec3 Terrain::getPoint(int i, int j)
     }
 }
 
-void Terrain::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> p)
+void Terrain::draw(shared_ptr<MatrixStack> MV)
 {
     // Draw mesh
     //glUniform3fv(p->getUniform("kdFront"), 1, glm::vec3(1.0, 0.0, 0.0).data());
@@ -267,8 +267,8 @@ void Terrain::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> p)
     //glUniform3f(p->getUniform("kd"), 0.8f, 0.4f, 0.5f);
     glm::vec3 grass(0.376f, 0.502f, 0.22f);
     float diffAmt = 0.4f;
-    glUniform3f(p->getUniform("ka"), grass.x, grass.y, grass.z);
-    glUniform3f(p->getUniform("kd"), grass.x * diffAmt, grass.y * diffAmt, grass.z * diffAmt);
+    glUniform3f(prog->getUniform("ka"), grass.x, grass.y, grass.z);
+    glUniform3f(prog->getUniform("kd"), grass.x * diffAmt, grass.y * diffAmt, grass.z * diffAmt);
 
 
     GLSL::checkError(GET_FILE_LINE);
@@ -277,11 +277,11 @@ void Terrain::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> p)
 
     GLSL::checkError(GET_FILE_LINE);
 
-    glUniformMatrix4fv(p->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    glUniformMatrix4fv(prog->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
 
     GLSL::checkError(GET_FILE_LINE);
 
-    int h_pos = p->getAttribute("aPos");
+    int h_pos = prog->getAttribute("aPos");
     glEnableVertexAttribArray(h_pos);
 
     GLSL::checkError(GET_FILE_LINE);
@@ -290,16 +290,17 @@ void Terrain::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> p)
 
     GLSL::checkError(GET_FILE_LINE);
 
+    glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);/////////////////////////////////// tryna get this to work with flat shading
+
     glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof(float), &posBuf[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(h_pos, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
-    int h_nor = p->getAttribute("aNor");
+    int h_nor = prog->getAttribute("aNor");
     glEnableVertexAttribArray(h_nor);
     glBindBuffer(GL_ARRAY_BUFFER, norBufID);
     glBufferData(GL_ARRAY_BUFFER, norBuf.size() * sizeof(float), &norBuf[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(h_nor, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
     int rowCols = edgeCells + 1;
-
     for (int i = 0; i < rowCols; ++i) {
         //float iPct = (float)i / rowCols;
         //if (i % 2 == 0) {

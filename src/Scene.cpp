@@ -23,7 +23,7 @@ void Scene::generateScene(bool flat)
     terrain->generateTerrain(flat);
 }
 
-void Scene::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> p_terrain)
+void Scene::draw(shared_ptr<MatrixStack> MV)
 {
-    terrain->draw(MV, p_terrain);
+    terrain->draw(MV);
 }

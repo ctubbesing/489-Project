@@ -24,7 +24,7 @@ public:
     glm::vec3 getPoint(int x, int z = -1);
     float getSize() { return edgeLength; }
 
-    void draw(std::shared_ptr<MatrixStack> MV, const std::shared_ptr<Program> p);
+    void draw(std::shared_ptr<MatrixStack> MV);
 
 private:
     std::vector< std::vector<glm::vec3> > landMat;

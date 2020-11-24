@@ -1,5 +1,7 @@
 #include "Scene.h"
 #include "Terrain.h"
+#include "Entity.h"
+#include "Program.h"
 
 using namespace std;
 
@@ -23,7 +25,13 @@ void Scene::generateScene(bool flat)
     terrain->generateTerrain(flat);
 }
 
-void Scene::draw(shared_ptr<MatrixStack> MV)
+void Scene::draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV)
 {
-    terrain->draw(MV);
+    progTerrain->bind();
+    terrain->draw(P, MV);
+    progTerrain->unbind();
+
+    for (auto entity : entities) {
+        entity->draw(P, MV);
+    }
 }

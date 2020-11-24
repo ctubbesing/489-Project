@@ -259,12 +259,14 @@ glm::vec3 Terrain::getPoint(int i, int j)
     }
 }
 
-void Terrain::draw(shared_ptr<MatrixStack> MV)
+void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
 {
     // Draw mesh
     //glUniform3fv(p->getUniform("kdFront"), 1, glm::vec3(1.0, 0.0, 0.0).data());
     //glUniform3fv(p->getUniform("kd"), 1, glm::vec3(1.0, 1.0, 0.0));
     //glUniform3f(p->getUniform("kd"), 0.8f, 0.4f, 0.5f);
+    glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+
     glm::vec3 grass(0.376f, 0.502f, 0.22f);
     float diffAmt = 0.4f;
     glUniform3f(prog->getUniform("ka"), grass.x, grass.y, grass.z);

@@ -16,9 +16,9 @@
 
 using namespace std;
 
-PathGraph::PathGraph(shared_ptr<Scene> scene_, int unitsPerNode_) :
-    scene(scene_),
-    unitsPerNode(unitsPerNode_),
+PathGraph::PathGraph(float _edgeLength, int _unitsPerNode) :
+    edgeLength(_edgeLength),
+    unitsPerNode(_unitsPerNode),
     start(NULL),
     goal(NULL)
 {
@@ -47,7 +47,7 @@ void PathGraph::regenerate()
 
     nodes.clear();
 
-    float edgeLength = scene->getSize();
+    //float edgeLength = scene->getSize();
     int n = ceil(edgeLength / unitsPerNode);
     float dx = edgeLength / n;
 
@@ -140,6 +140,11 @@ void PathGraph::updateStart(glm::vec3 pos)
 
     // update old start
     if (start != NULL) {
+        if (start->pos == pos) {
+            // don't need to update start
+            return;
+        }
+
         start->clearNeighbors();
         start->pos = pos;
     }
@@ -148,7 +153,7 @@ void PathGraph::updateStart(glm::vec3 pos)
     }
 
     // link to new neighbors
-    float edgeLength = scene->getSize();
+    //float edgeLength = scene->getSize();
     int n = ceil(edgeLength / unitsPerNode);
     float dx = edgeLength / n;
 
@@ -177,9 +182,13 @@ void PathGraph::updateGoal(glm::vec3 pos)
     //cout << "goal:" << endl;
     //printNodeData(goal);
 
-
-    // update old start
+    // update old goal
     if (goal != NULL) {
+        if (goal->pos == pos) {
+            // don't need to update goal
+            return;
+        }
+
         goal->clearNeighbors();
         goal->pos = pos;
     }
@@ -188,7 +197,7 @@ void PathGraph::updateGoal(glm::vec3 pos)
     }
 
     // link to new neighbors
-    float edgeLength = scene->getSize();
+    //float edgeLength = scene->getSize();
     int n = ceil(edgeLength / unitsPerNode);
     float dx = edgeLength / n;
 
@@ -268,7 +277,7 @@ void PathGraph::printBranchData(shared_ptr<AStarBranch> b, string gap)
     cout << gap << str << "f = " << b->f << endl;
     cout << gap << str << "path: " << endl;
     for (auto node : b->path) {
-        float edgeLength = scene->getSize();
+        //float edgeLength = scene->getSize();
         int n = ceil(edgeLength / unitsPerNode);
         float dx = edgeLength / n;
 
@@ -286,7 +295,7 @@ void PathGraph::printBranchData(shared_ptr<AStarBranch> b, string gap)
     }
 }
 
-vector< shared_ptr<PathNode> > PathGraph::findPath()
+vector< glm::vec3 > PathGraph::findPath()
 {
     bool doOut = false;
     string str = "    ";
@@ -297,7 +306,7 @@ vector< shared_ptr<PathNode> > PathGraph::findPath()
     if (start == NULL || goal == NULL) {
         if (doOut)cout << str << "Either start or goal is unavailable; exiting." << endl;
         if (doOut)cout << "------------------------------------------------" << endl << endl;
-        return vector< shared_ptr<PathNode> >();
+        return vector<glm::vec3>();
     }
 
     // do A* search from start to goal
@@ -339,17 +348,24 @@ vector< shared_ptr<PathNode> > PathGraph::findPath()
         cout << "PathGraph::findPath(): No path from start to goal exists." << endl;
         if (doOut)cout << str << endl << "Exiting findPath()." << endl;
         if (doOut)cout << "------------------------------------------------" << endl;
-        return vector< shared_ptr<PathNode> >();
+        return vector<glm::vec3>();
     }
 
     if (doOut)cout << str << " !!!! Optimal branch selected !!!!" << endl;
     if (doOut)printBranchData(currentBranch);
     if (doOut)cout << str << endl << "Exiting findPath()." << endl;
     if (doOut)cout << "------------------------------------------------" << endl << endl << endl;
-    return currentBranch->path;
+
+    // convert branch path to vector of glm::vec3
+    vector<glm::vec3> finalPath;
+    for (auto node : currentBranch->path) {
+        finalPath.push_back(node->pos);
+    }
+
+    return finalPath;
 }
 
-void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector< shared_ptr<PathNode> > path)
+void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path)
 {
     // --- draw normal nodes ---
     shapeProg->bind();
@@ -371,9 +387,25 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         auto nodeRow = nodes[i];
         for (auto node : nodeRow) {
             if (node != NULL) {
+                ////////////////////////////////////////////////////////////////
+                for (glm::vec3 pathPos : path) {
+                    if (node->pos == pathPos) {
+                        glUniform3f(shapeProg->getUniform("ka"), 0.3f, 0.0f, 0.0f);
+                        glUniform3f(shapeProg->getUniform("kd"), 0.9f, 0.2f, 0.2f);
+                        break;
+                    }
+                    else {
+                        glUniform3f(shapeProg->getUniform("ka"), rW*randColor, gW*randColor, bW*randColor);
+                        glUniform3f(shapeProg->getUniform("kd"), rW*randColor, gW*randColor, bW*randColor);
+                    }
+                }
+                ////////////////////////////////////////////////////////////////
+
+
                 MV->pushMatrix();
 
                 MV->translate(node->pos);
+                MV->scale(0.75f);
                 MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
                 glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
                 PmShape->draw();
@@ -417,37 +449,37 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
 
     // --- draw start & goal ---
     // start
-    if (start != NULL) {
-        // draw shape
-        shapeProg->bind();
-        glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-        glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.5f, 0.0f);
-        glUniform3f(shapeProg->getUniform("kd"), 0.7f, 0.7f, 0.0f);
+    //if (start != NULL) {
+    //    // draw shape
+    //    shapeProg->bind();
+    //    glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    //    glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.5f, 0.0f);
+    //    glUniform3f(shapeProg->getUniform("kd"), 0.7f, 0.7f, 0.0f);
 
-        MV->pushMatrix();
-        MV->translate(start->pos);
-        MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-        glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-        PmShape->draw();
-        MV->popMatrix();
+    //    MV->pushMatrix();
+    //    MV->translate(start->pos);
+    //    MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //    glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //    PmShape->draw();
+    //    MV->popMatrix();
 
-        shapeProg->unbind();
+    //    shapeProg->unbind();
 
-        // draw links
-        simpleProg->bind();
-        glLineWidth(8);
-        glColor3f(0.9f, 0.9f, 0.0f);
-        glBegin(GL_LINES);
-        glm::vec3 pos0 = start->pos;
-        for (auto neighbor : start->neighbors) {
-            glm::vec3 pos1 = neighbor->pos;
+    //    //// draw links
+    //    //simpleProg->bind();
+    //    //glLineWidth(8);
+    //    //glColor3f(0.9f, 0.9f, 0.0f);
+    //    //glBegin(GL_LINES);
+    //    //glm::vec3 pos0 = start->pos;
+    //    //for (auto neighbor : start->neighbors) {
+    //    //    glm::vec3 pos1 = neighbor->pos;
 
-            glVertex3f(pos0.x, pos0.y, pos0.z);
-            glVertex3f(pos1.x, pos1.y, pos1.z);
-        }
-        glEnd();
-        simpleProg->unbind();
-    }
+    //    //    glVertex3f(pos0.x, pos0.y, pos0.z);
+    //    //    glVertex3f(pos1.x, pos1.y, pos1.z);
+    //    //}
+    //    //glEnd();
+    //    //simpleProg->unbind();
+    //}
     
     // goal
     if (goal != NULL) {
@@ -466,20 +498,20 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
 
         shapeProg->unbind();
 
-        // draw links
-        simpleProg->bind();
-        glLineWidth(8);
-        glColor3f(0.0f, 0.9f, 0.0f);
-        glBegin(GL_LINES);
-        glm::vec3 pos0 = goal->pos;
-        for (auto neighbor : goal->neighbors) {
-            glm::vec3 pos1 = neighbor->pos;
+        //// draw links
+        //simpleProg->bind();
+        //glLineWidth(8);
+        //glColor3f(0.0f, 0.9f, 0.0f);
+        //glBegin(GL_LINES);
+        //glm::vec3 pos0 = goal->pos;
+        //for (auto neighbor : goal->neighbors) {
+        //    glm::vec3 pos1 = neighbor->pos;
 
-            glVertex3f(pos0.x, pos0.y, pos0.z);
-            glVertex3f(pos1.x, pos1.y, pos1.z);
-        }
-        glEnd();
-        simpleProg->unbind();
+        //    glVertex3f(pos0.x, pos0.y, pos0.z);
+        //    glVertex3f(pos1.x, pos1.y, pos1.z);
+        //}
+        //glEnd();
+        //simpleProg->unbind();
     }
     
     // --- draw provided path ---
@@ -487,13 +519,16 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         simpleProg->bind();
         glLineWidth(15);
         glColor3f(0.8f, 0.4f, 0.4f);
-        glBegin(GL_LINES);
-        for (int i = 0; i < path.size() - 1; i++) {
-            glm::vec3 pos0 = path[i]->pos;
-            glm::vec3 pos1 = path[i + 1]->pos;
+        glBegin(GL_LINE_STRIP);
+        //for (int i = 0; i < path.size() - 1; i++) {
+        //    glm::vec3 pos0 = path[i]->pos;
+        //    glm::vec3 pos1 = path[i + 1]->pos;
 
-            glVertex3f(pos0.x, pos0.y, pos0.z);
-            glVertex3f(pos1.x, pos1.y, pos1.z);
+        //    glVertex3f(pos0.x, pos0.y, pos0.z);
+        //    glVertex3f(pos1.x, pos1.y, pos1.z);
+        //}
+        for (glm::vec3 node : path) {
+            glVertex3f(node.x, node.y, node.z);
         }
         glEnd();
         simpleProg->unbind();

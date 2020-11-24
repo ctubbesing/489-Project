@@ -21,6 +21,7 @@
 #include "Shape.h"
 #include "Scene.h"
 #include "Terrain.h"
+#include "Entity.h"
 #include "ShapeSkin.h"
 #include "Texture.h"
 #include "PathGraph.h"
@@ -43,7 +44,8 @@ GLFWwindow *window; // Main application window
 string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
-int TERRAIN_CELLS = 50; // 100;
+int TERRAIN_CELLS = 1; // 100;
+int PG_UNITS_PER_NODE = 13;
 bool flatTerrain = true;
 
 shared_ptr<Camera> camera = NULL;
@@ -53,16 +55,17 @@ shared_ptr<Program> progTerrain = NULL;
 shared_ptr<Program> progSkin = NULL;
 map< string, shared_ptr<Texture> > textureMap;
 shared_ptr<Scene> scene = NULL;
+shared_ptr<Entity> ent;
 vector< shared_ptr<ShapeSkin> > shapes;
 vector<glm::mat4> bindPose;
 vector< vector<glm::mat4> > frames;
 double t, t0;
 
 ///////////////////////////////
-shared_ptr<Shape> pmShape;
-shared_ptr<PathGraph> pg;
-vector< shared_ptr<PathNode> > pgPath;
-int PG_UNITS_PER_NODE = 10;
+//shared_ptr<Shape> pmShape;
+//shared_ptr<Shape> eShape;
+//shared_ptr<PathGraph> pg;
+//vector< shared_ptr<PathNode> > pgPath;
 ///////////////////////////////
 
 static void error_callback(int error, const char *description)
@@ -86,36 +89,26 @@ float randFloat(float l, float h)
 static void char_callback(GLFWwindow *window, unsigned int key)
 {
     keyToggles[key] = !keyToggles[key];
-    glm::vec3 pos;
     switch (key) {
         case (unsigned)'p':
-            pg->regenerate();
-            break;
-        case (unsigned)'t':
-            pg->clear35();
+            ent->regenPG(); /////////////////////////////////////////////////////////////////////// causes crash bad
             break;
         case (unsigned)'s':
             //pos = glm::vec3(-45.156f, 0.0f, 43.152f);
-            pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
-            pg->updateStart(pos);
-            pgPath = pg->findPath();
+            glm::vec3 pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+            ent->setPos(pos);
             break;
         case (unsigned)'g':
             //pos = glm::vec3(-6.227f, 0.0f, -40.561f);
-            pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
-            pg->updateGoal(pos);
-            pgPath = pg->findPath();
+            glm::vec3 goal = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+            ent->setGoal(goal);
             break;
-        case (unsigned)'f':
-            pgPath = pg->findPath();
-            break;
-        case (unsigned)'a':
-            cout << "pgPath drawing " << (keyToggles[(unsigned)'a'] ? "on." : "off.");
-            break;
-        case (unsigned)'m':
-            cout << "shade model is " << (keyToggles[(unsigned)'m'] ? "GL_FLAT" : "GL_SMOOTH") << endl;
-            glShadeModel((keyToggles[(unsigned)'m'] ? GL_FLAT : GL_SMOOTH));
-            break;
+        //case (unsigned)'f':
+        //    pgPath = pg->findPath();
+        //    break;
+        //case (unsigned)'a':
+        //    cout << "pgPath drawing " << (keyToggles[(unsigned)'a'] ? "on." : "off.");
+        //    break;
     }
 }
 
@@ -340,34 +333,52 @@ static void init()
     progSkin->addUniform("kdTex");
     progSkin->addUniform("T");
 
-    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, flatTerrain);
-    scene->setTerrainProg(progTerrain);
-
     for (auto shape : shapes) {
         shape->init();
     }
 
     /////////////////////////////////////////////////////////////////////
-    pmShape = make_shared<Shape>();
+    shared_ptr<Shape> pmShape = make_shared<Shape>();
     pmShape->setProgram(progShapes);
     pmShape->loadMesh(DATA_DIR + "marker2.obj");
-    //shape->loadMesh(DATA_DIR + "PathMarker.obj");
-    //shape->loadMesh(DATA_DIR + "helicopter_prop2.obj");
     pmShape->scale(1.5f);
     pmShape->init();
 
-    pg = make_shared<PathGraph>(scene, PG_UNITS_PER_NODE);
-    pg->setSimpleProgram(progSimple);
-    pg->setShapeProgram(progShapes);
-    pg->setShape(pmShape);
+    shared_ptr<Shape> eShape = make_shared<Shape>();
+    eShape->setProgram(progShapes);
+    eShape->loadMesh(DATA_DIR + "sphere2.obj");
+    eShape->scale(1.5f);
+    eShape->init();
+
+    //pg = make_shared<PathGraph>(scene, PG_UNITS_PER_NODE);
+    //pg->setSimpleProgram(progSimple);
+    //pg->setShapeProgram(progShapes);
+    //pg->setShape(pmShape);
 
 
-    pgPath = vector< shared_ptr<PathNode> >();
-    pgPath.push_back(make_shared<PathNode>(glm::vec3(25, 0, 25)));
-    pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 0)));
-    pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 50)));
-    pgPath.push_back(make_shared<PathNode>(glm::vec3(0, 0, 0)));
+    //pgPath = vector< shared_ptr<PathNode> >();
+    //pgPath.push_back(make_shared<PathNode>(glm::vec3(25, 0, 25)));
+    //pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 0)));
+    //pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 50)));
+    //pgPath.push_back(make_shared<PathNode>(glm::vec3(0, 0, 0)));
     /////////////////////////////////////////////////////////////////////
+
+    // initialize scene
+    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, flatTerrain);
+    scene->setProgSimple(progSimple);
+    scene->setProgShapes(progShapes);
+    scene->setProgSkin(progSkin);
+    scene->setProgTerrain(progTerrain);
+
+    // initialize entity
+    ent = make_shared<Entity>(glm::vec3(0.0f), TERRAIN_SIZE, PG_UNITS_PER_NODE);
+    ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
+    //ent->setSkinProgram(progSkin);
+    ent->setSkin(eShape);//////////////////////////////////
+    ent->setPGProgs(progSimple, progShapes);
+    ent->setPGShape(pmShape);
+
+    scene->addEntity(ent);
 
         // Bind the texture to unit 1.
     int unit = 1;
@@ -491,94 +502,94 @@ void render()
     glEnd();
     progSimple->unbind();
 
-    // do shape at terrain vertices
-    if (keyToggles[(unsigned)'v']) {
-        progShapes->bind();
+    //// do shape at terrain vertices
+    //if (keyToggles[(unsigned)'v']) {
+    //    progShapes->bind();
 
-        glUniform3f(progShapes->getUniform("kd"), 0.2f, 0.5f, 0.6f);
-        glUniform3f(progShapes->getUniform("ka"), 0.02f, 0.05f, 0.06f);
-        glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    //    glUniform3f(progShapes->getUniform("kd"), 0.2f, 0.5f, 0.6f);
+    //    glUniform3f(progShapes->getUniform("ka"), 0.02f, 0.05f, 0.06f);
+    //    glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 
-        MV->pushMatrix();
-        //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-        //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    //    MV->pushMatrix();
+    //    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
 
-        shared_ptr terrain = scene->getTerrain();
-        for (int i = 0; i < TERRAIN_CELLS + 1; i++) {
-            for (int j = 0; j < TERRAIN_CELLS + 1; j++) {
-                MV->pushMatrix();
-                MV->translate(terrain->getPoint(i, j));
-                MV->rotate(t, 0.0f, 1.0f, 0.0f);
-                MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-                glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-                pmShape->draw();
-                MV->popMatrix();
-            }
-        }
+    //    shared_ptr terrain = scene->getTerrain();
+    //    for (int i = 0; i < TERRAIN_CELLS + 1; i++) {
+    //        for (int j = 0; j < TERRAIN_CELLS + 1; j++) {
+    //            MV->pushMatrix();
+    //            MV->translate(terrain->getPoint(i, j));
+    //            MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    //            MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //            glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //            pmShape->draw();
+    //            MV->popMatrix();
+    //        }
+    //    }
 
-        
-        ////////////////////////////////////////////////////////////////
-        //MV->pushMatrix();
-        //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
-        //MV->rotate(t, 0.0f, 1.0f, 0.0f);
-        //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-        //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-        //pmShape->draw();
-        //MV->popMatrix();
-        ////////////////////////////////////////////////////////////////
+    //    
+    //    ////////////////////////////////////////////////////////////////
+    //    //MV->pushMatrix();
+    //    //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
+    //    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    //    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //    //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //    //pmShape->draw();
+    //    //MV->popMatrix();
+    //    ////////////////////////////////////////////////////////////////
 
 
 
-        MV->popMatrix();
-        progShapes->unbind();
-    }
+    //    MV->popMatrix();
+    //    progShapes->unbind();
+    //}
 
     // draw terrain
-    progTerrain->bind();
-    glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-    MV->pushMatrix();
-    scene->draw(MV);
-    MV->popMatrix();
-    progTerrain->unbind();
+    //progTerrain->bind();
+    //glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    //MV->pushMatrix();
+    scene->draw(P, MV);
+    //MV->popMatrix();
+    //progTerrain->unbind();
     
-    // draw pg
-    if (keyToggles[(unsigned)'a']) {
-        pg->draw(P, MV, pgPath);
-    }
-    else {
-        pg->draw(P, MV);
-    }
+    //// draw pg
+    //if (keyToggles[(unsigned)'a']) {
+    //    pg->draw(P, MV, pgPath);
+    //}
+    //else {
+    //    pg->draw(P, MV);
+    //}
 
     // draw characters
-    //double fps = 30;
-    //int frameCount = frames.size();
-    //int frame = ((int)floor(t*fps)) % frameCount;
-    //for (int i = 0; i < 4; i++) {
-    //    MV->pushMatrix();
-    //    MV->translate(i * 10.0f, 0, 0);
-    //    MV->rotate(i * M_PI / 2, 0.0f, 1.0f, 0.0f);
+    double fps = 30;
+    int frameCount = frames.size();
+    int frame = ((int)floor(t*fps)) % frameCount;
+    for (int i = 0; i < 4; i++) {
+        MV->pushMatrix();
+        MV->translate(i * 10.0f, 0, 0);
+        MV->rotate(i * M_PI / 2, 0.0f, 1.0f, 0.0f);
 
-    //    for (const auto &shape : shapes) {
-    //        MV->pushMatrix();
+        for (const auto &shape : shapes) {
+            MV->pushMatrix();
 
-    //        progSkin->bind();
-    //        textureMap[shape->getTextureFilename()]->bind(progSkin->getUniform("kdTex"));
-    //        glLineWidth(1.0f); // for wireframe
-    //        MV->scale(0.05f);
-    //        glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-    //        glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    //        glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
-    //        glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
-    //        glUniform1f(progSkin->getUniform("s"), 200.0f);
-    //        shape->setProgram(progSkin);
-    //        shape->update(frame, bindPose, frames[frame]);
-    //        shape->draw(frame);
-    //        progSkin->unbind();
+            progSkin->bind();
+            textureMap[shape->getTextureFilename()]->bind(progSkin->getUniform("kdTex"));
+            glLineWidth(1.0f); // for wireframe
+            MV->scale(0.05f);
+            glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+            glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+            glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
+            glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
+            glUniform1f(progSkin->getUniform("s"), 200.0f);
+            shape->setProgram(progSkin);
+            shape->update(frame, bindPose, frames[frame]);
+            shape->draw(frame);
+            progSkin->unbind();
 
-    //        MV->popMatrix();
-    //    }
-    //    MV->popMatrix();
-    //}
+            MV->popMatrix();
+        }
+        MV->popMatrix();
+    }
 
     // pop matrix stacks
     MV->popMatrix();

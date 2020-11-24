@@ -26,7 +26,7 @@ public:
     //void setPG(std::shared_ptr<PathGraph> _pg) { pg = _pg; }
     void setSkin(std::shared_ptr<Shape> _skin) { skin = _skin; }//////////////////////////////////temp
     //void setSkin(std::shared_ptr<ShapeSkin> _skin) { skin = _skin;
-    void regenPG() { pg->regenerate(); }
+    void regenPG() { pg->regenerate(pos, goal); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     void setPGProgs(std::shared_ptr<Program> simpleProg, std::shared_ptr<Program> shapeProg)

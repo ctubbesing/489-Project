@@ -561,35 +561,35 @@ void render()
     //}
 
     // draw characters
-    double fps = 30;
-    int frameCount = frames.size();
-    int frame = ((int)floor(t*fps)) % frameCount;
-    for (int i = 0; i < 4; i++) {
-        MV->pushMatrix();
-        MV->translate(i * 10.0f, 0, 0);
-        MV->rotate(i * M_PI / 2, 0.0f, 1.0f, 0.0f);
+    //double fps = 30;
+    //int frameCount = frames.size();
+    //int frame = ((int)floor(t*fps)) % frameCount;
+    //for (int i = 0; i < 4; i++) {
+    //    MV->pushMatrix();
+    //    MV->translate(i * 10.0f, 0, 0);
+    //    MV->rotate(i * M_PI / 2, 0.0f, 1.0f, 0.0f);
 
-        for (const auto &shape : shapes) {
-            MV->pushMatrix();
+    //    for (const auto &shape : shapes) {
+    //        MV->pushMatrix();
 
-            progSkin->bind();
-            textureMap[shape->getTextureFilename()]->bind(progSkin->getUniform("kdTex"));
-            glLineWidth(1.0f); // for wireframe
-            MV->scale(0.05f);
-            glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-            glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-            glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
-            glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
-            glUniform1f(progSkin->getUniform("s"), 200.0f);
-            shape->setProgram(progSkin);
-            shape->update(frame, bindPose, frames[frame]);
-            shape->draw(frame);
-            progSkin->unbind();
+    //        progSkin->bind();
+    //        textureMap[shape->getTextureFilename()]->bind(progSkin->getUniform("kdTex"));
+    //        glLineWidth(1.0f); // for wireframe
+    //        MV->scale(0.05f);
+    //        glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    //        glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //        glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
+    //        glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
+    //        glUniform1f(progSkin->getUniform("s"), 200.0f);
+    //        shape->setProgram(progSkin);
+    //        shape->update(frame, bindPose, frames[frame]);
+    //        shape->draw(frame);
+    //        progSkin->unbind();
 
-            MV->popMatrix();
-        }
-        MV->popMatrix();
-    }
+    //        MV->popMatrix();
+    //    }
+    //    MV->popMatrix();
+    //}
 
     // pop matrix stacks
     MV->popMatrix();

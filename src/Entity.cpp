@@ -38,6 +38,12 @@ void Entity::generatePath()
     path = pg->findPath();
 }
 
+void Entity::regenPG()
+{
+    pg->regenerate(pos, goal);
+    generatePath();
+}
+
 void Entity::setPos(glm::vec3 _pos)
 {
     pos = _pos;

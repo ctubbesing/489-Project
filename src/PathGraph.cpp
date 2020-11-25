@@ -44,14 +44,6 @@ void PathGraph::regenerate()
     //cout << "goal:" << endl;
     //printNodeData(goal);
 
-    // remove start & goal from rest of graph
-    if (start != NULL) {
-        start->clearNeighbors();
-    }
-    if (goal != NULL) {
-        goal->clearNeighbors();
-    }
-
     nodes.clear();
 
     //float edgeLength = scene->getSize();
@@ -106,12 +98,15 @@ void PathGraph::regenerate()
     //cout << endl;
 }
 
-void PathGraph::regenerate(glm::vec3 start_, glm::vec3 goal_)
+void PathGraph::regenerate(glm::vec3 _start, glm::vec3 _goal)
 {
+    start->pos = _start;
+    goal->pos = _goal;
+
     regenerate();
 
-    updateStart(start_);
-    updateGoal(goal_);
+    //updateStart(start_);
+    //updateGoal(goal_);
 }
 
 void PathGraph::printNodeData(shared_ptr<PathNode> node)
@@ -147,11 +142,6 @@ void PathGraph::updateStart(glm::vec3 pos)
 
     // update old start
     if (start != NULL) {
-        if (start->pos == pos) {
-            // don't need to update start
-            return;
-        }
-
         start->clearNeighbors();
         start->pos = pos;
     }
@@ -191,11 +181,6 @@ void PathGraph::updateGoal(glm::vec3 pos)
 
     // update old goal
     if (goal != NULL) {
-        if (goal->pos == pos) {
-            // don't need to update goal
-            return;
-        }
-
         goal->clearNeighbors();
         goal->pos = pos;
     }

@@ -22,8 +22,8 @@ public:
     void loadAttachment(const std::string &filename);
     void setProgram(std::shared_ptr<Program> p) { prog = p; }
     void init();
-    void update(int k, std::vector<glm::mat4> &bp, std::vector<glm::mat4> &ap);
-    void draw(int k) const;
+    void update(std::vector<glm::mat4> &bp, std::vector<glm::mat4> &ap);
+    void draw() const;
     void setTextureFilename(const std::string &f) { textureFilename = f; }
     std::string getTextureFilename() const { return textureFilename; }
     std::shared_ptr<TextureMatrix> getTextureMatrix() { return T; }

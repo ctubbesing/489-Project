@@ -441,37 +441,37 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
 
     // --- draw start & goal ---
     // start
-    if (start != NULL) {
-        // draw shape
-        shapeProg->bind();
-        glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-        glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.5f, 0.0f);
-        glUniform3f(shapeProg->getUniform("kd"), 0.7f, 0.7f, 0.0f);
+    //if (start != NULL) {
+    //    // draw shape
+    //    shapeProg->bind();
+    //    glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    //    glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.5f, 0.0f);
+    //    glUniform3f(shapeProg->getUniform("kd"), 0.7f, 0.7f, 0.0f);
 
-        MV->pushMatrix();
-        MV->translate(start->pos);
-        MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-        glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-        PmShape->draw();
-        MV->popMatrix();
+    //    MV->pushMatrix();
+    //    MV->translate(start->pos);
+    //    MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //    glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //    PmShape->draw();
+    //    MV->popMatrix();
 
-        shapeProg->unbind();
+    //    shapeProg->unbind();
 
-        // draw links
-        simpleProg->bind();
-        glLineWidth(8);
-        glColor3f(0.9f, 0.9f, 0.0f);
-        glBegin(GL_LINES);
-        glm::vec3 pos0 = start->pos;
-        for (auto neighbor : start->neighbors) {
-            glm::vec3 pos1 = neighbor->pos;
+    //    // draw links
+    //    simpleProg->bind();
+    //    glLineWidth(8);
+    //    glColor3f(0.9f, 0.9f, 0.0f);
+    //    glBegin(GL_LINES);
+    //    glm::vec3 pos0 = start->pos;
+    //    for (auto neighbor : start->neighbors) {
+    //        glm::vec3 pos1 = neighbor->pos;
 
-            glVertex3f(pos0.x, pos0.y, pos0.z);
-            glVertex3f(pos1.x, pos1.y, pos1.z);
-        }
-        glEnd();
-        simpleProg->unbind();
-    }
+    //        glVertex3f(pos0.x, pos0.y, pos0.z);
+    //        glVertex3f(pos1.x, pos1.y, pos1.z);
+    //    }
+    //    glEnd();
+    //    simpleProg->unbind();
+    //}
     
     // goal
     if (goal != NULL) {
@@ -491,19 +491,19 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         shapeProg->unbind();
 
         //// draw links
-        simpleProg->bind();
-        glLineWidth(8);
-        glColor3f(0.0f, 0.9f, 0.0f);
-        glBegin(GL_LINES);
-        glm::vec3 pos0 = goal->pos;
-        for (auto neighbor : goal->neighbors) {
-            glm::vec3 pos1 = neighbor->pos;
+        //simpleProg->bind();
+        //glLineWidth(8);
+        //glColor3f(0.0f, 0.9f, 0.0f);
+        //glBegin(GL_LINES);
+        //glm::vec3 pos0 = goal->pos;
+        //for (auto neighbor : goal->neighbors) {
+        //    glm::vec3 pos1 = neighbor->pos;
 
-            glVertex3f(pos0.x, pos0.y, pos0.z);
-            glVertex3f(pos1.x, pos1.y, pos1.z);
-        }
-        glEnd();
-        simpleProg->unbind();
+        //    glVertex3f(pos0.x, pos0.y, pos0.z);
+        //    glVertex3f(pos1.x, pos1.y, pos1.z);
+        //}
+        //glEnd();
+        //simpleProg->unbind();
     }
     
     // --- draw provided path ---

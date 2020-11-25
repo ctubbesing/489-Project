@@ -158,7 +158,7 @@ void ShapeSkin::init()
     GLSL::checkError(GET_FILE_LINE);
 }
 
-void ShapeSkin::update(int k, vector<glm::mat4> &bp, vector<glm::mat4> &ap)
+void ShapeSkin::update(vector<glm::mat4> &bp, vector<glm::mat4> &ap)
 {
     // calculate inverse bind matrices only if necessary
     if (bindMats.size() == 0) {
@@ -210,7 +210,7 @@ void ShapeSkin::update(int k, vector<glm::mat4> &bp, vector<glm::mat4> &ap)
     GLSL::checkError(GET_FILE_LINE);
 }
 
-void ShapeSkin::draw(int k) const
+void ShapeSkin::draw() const
 {
     assert(prog);
 

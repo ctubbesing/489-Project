@@ -45,7 +45,7 @@ string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
 int TERRAIN_CELLS = 1; // 100;
-int PG_UNITS_PER_NODE = 13;
+int PG_UNITS_PER_NODE = 10;
 bool flatTerrain = true;
 
 shared_ptr<Camera> camera = NULL;
@@ -335,6 +335,7 @@ static void init()
 
     for (auto shape : shapes) {
         shape->init();
+        //shape->update(0, bindPose, frames[0]);
     }
 
     /////////////////////////////////////////////////////////////////////
@@ -363,24 +364,7 @@ static void init()
     //pgPath.push_back(make_shared<PathNode>(glm::vec3(0, 0, 0)));
     /////////////////////////////////////////////////////////////////////
 
-    // initialize scene
-    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, flatTerrain);
-    scene->setProgSimple(progSimple);
-    scene->setProgShapes(progShapes);
-    scene->setProgSkin(progSkin);
-    scene->setProgTerrain(progTerrain);
-
-    // initialize entity
-    ent = make_shared<Entity>(glm::vec3(0.0f), TERRAIN_SIZE, PG_UNITS_PER_NODE);
-    ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
-    //ent->setSkinProgram(progSkin);
-    ent->setSkin(eShape);//////////////////////////////////
-    ent->setPGProgs(progSimple, progShapes);
-    ent->setPGShape(pmShape);
-
-    scene->addEntity(ent);
-
-        // Bind the texture to unit 1.
+    // Bind the texture to unit 1.
     int unit = 1;
     progSkin->bind();
     glUniform1i(progSkin->getUniform("kdTex"), unit);
@@ -394,6 +378,30 @@ static void init()
         textureKd->setUnit(unit); // Bind to unit 1
         textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
     }
+
+    // initialize scene
+    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, flatTerrain);
+    scene->setProgSimple(progSimple);
+    scene->setProgShapes(progShapes);
+    scene->setProgSkin(progSkin);
+    scene->setProgTerrain(progTerrain);
+
+    // initialize entity
+    ent = make_shared<Entity>(glm::vec3(0.0f), TERRAIN_SIZE, PG_UNITS_PER_NODE);
+    ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
+    //ent->setSkinProgram(progSkin);
+    ent->setSkin(shapes);//////////////////////////////////
+    ent->setPGProgs(progSimple, progShapes);
+    ent->setPGShape(pmShape);
+    ////////////////////////////////
+    ent->setTexMap(textureMap);
+    ent->setBindPose(bindPose);
+    ent->setFrames(frames);
+    ////////////////////////////////
+
+    scene->addEntity(ent);
+
+
     
     // set background color
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -548,7 +556,7 @@ void render()
     //progTerrain->bind();
     //glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     //MV->pushMatrix();
-    scene->draw(P, MV);
+    scene->draw(P, MV, t);
     //MV->popMatrix();
     //progTerrain->unbind();
     
@@ -561,35 +569,35 @@ void render()
     //}
 
     // draw characters
-    //double fps = 30;
-    //int frameCount = frames.size();
-    //int frame = ((int)floor(t*fps)) % frameCount;
-    //for (int i = 0; i < 4; i++) {
-    //    MV->pushMatrix();
-    //    MV->translate(i * 10.0f, 0, 0);
-    //    MV->rotate(i * M_PI / 2, 0.0f, 1.0f, 0.0f);
+    double fps = 30;
+    int frameCount = frames.size();
+    int frame = ((int)floor(t*fps)) % frameCount;
+    for (int i = 0; i < 4; i++) {
+        MV->pushMatrix();
+        MV->translate(i * 10.0f, 0, 0);
+        MV->rotate(i * M_PI / 2, 0.0f, 1.0f, 0.0f);
 
-    //    for (const auto &shape : shapes) {
-    //        MV->pushMatrix();
+        for (const auto &shape : shapes) {
+            MV->pushMatrix();
 
-    //        progSkin->bind();
-    //        textureMap[shape->getTextureFilename()]->bind(progSkin->getUniform("kdTex"));
-    //        glLineWidth(1.0f); // for wireframe
-    //        MV->scale(0.05f);
-    //        glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-    //        glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    //        glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
-    //        glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
-    //        glUniform1f(progSkin->getUniform("s"), 200.0f);
-    //        shape->setProgram(progSkin);
-    //        shape->update(frame, bindPose, frames[frame]);
-    //        shape->draw(frame);
-    //        progSkin->unbind();
+            progSkin->bind();
+            textureMap[shape->getTextureFilename()]->bind(progSkin->getUniform("kdTex"));
+            glLineWidth(1.0f); // for wireframe
+            MV->scale(0.05f);
+            glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+            glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+            glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
+            glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
+            glUniform1f(progSkin->getUniform("s"), 200.0f);
+            shape->setProgram(progSkin);
+            shape->update(bindPose, frames[frame]);
+            shape->draw();
+            progSkin->unbind();
 
-    //        MV->popMatrix();
-    //    }
-    //    MV->popMatrix();
-    //}
+            MV->popMatrix();
+        }
+        MV->popMatrix();
+    }
 
     // pop matrix stacks
     MV->popMatrix();

@@ -39,7 +39,7 @@ public:
     void setGoal(glm::vec3 _goal);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
+    void update(double t);
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV);
 
 private:

@@ -61,6 +61,42 @@ void Entity::setGoal(glm::vec3 _goal)
 //    pg
 //}
 
+void Entity::update(double t)
+{
+    if (path.size() == 0) {
+        return;
+    }
+
+    // define Catmull-Rom B matrix
+    glm::mat4 B;
+    B[0] = glm::vec4(0.0f, 2.0f, 0.0f, 0.0f);
+    B[1] = glm::vec4(-1.0f, 0.0f, 1.0f, 0.0f);
+    B[2] = glm::vec4(2.0f, -5.0f, 4.0f, -1.0f);
+    B[3] = glm::vec4(-1.0f, 3.0f, -3.0f, 1.0f);
+    B /= 2;
+
+    int pathSegments = path.size();
+    float u = (float)fmod(t, pathSegments);
+
+    /* -- draw moving helicopter -- */
+    int u_int = (int)floor(u);
+    float u_frac = u - u_int;
+
+    glm::vec4 uVec(1, u_frac, u_frac*u_frac, u_frac*u_frac*u_frac);
+
+    // calculate G matrix for position
+    glm::mat4 G_position;
+    G_position[0] = glm::vec4(path[u_int], 0.0f);
+    G_position[1] = glm::vec4(path[(u_int + 1) % pathSegments], 0.0f);
+    G_position[2] = glm::vec4(path[(u_int + 2) % pathSegments], 0.0f);
+    G_position[3] = glm::vec4(path[(u_int + 3) % pathSegments], 0.0f);
+
+    // add position info to transformation matrix
+    pos = G_position * (B*uVec);
+    //glm::vec3 heli_p = G_position * (B*uVec);
+
+}
+
 void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
 {
     // draw skin

@@ -360,84 +360,90 @@ vector< glm::vec3 > PathGraph::findPath()
 void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path)
 {
     // --- draw normal nodes ---
-    shapeProg->bind();
+    if (true) {
+        shapeProg->bind();
 
-    //glUniform3f(shapeProg->getUniform("kd"), 0.2f, 0.5f, 0.6f);
-    //glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.05f, 0.06f);
-    glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+        //glUniform3f(shapeProg->getUniform("kd"), 0.2f, 0.5f, 0.6f);
+        //glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.05f, 0.06f);
+        glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 
-    float rW = 0.6f;
-    float gW = 0.8f;
-    float bW = 1.0f;
-    for (int i = 0; i < nodes.size(); i++) {
-        float randColor = sin(5*i) / 2 + 0.5f;
-        randColor += sin(0.5*i) / 2 + 0.5f;
-        randColor += abs(cos(i)) / 2 + 0.5f;
-        randColor /= 3;
-        glUniform3f(shapeProg->getUniform("ka"), rW*randColor, gW*randColor, bW*randColor);
-        glUniform3f(shapeProg->getUniform("kd"), rW*randColor, gW*randColor, bW*randColor);
-        auto nodeRow = nodes[i];
-        for (auto node : nodeRow) {
-            if (node != NULL) {
-                ////////////////////////////////////////////////////////////////
-                for (glm::vec3 pathPos : path) {
-                    if (node->pos == pathPos) {
-                        glUniform3f(shapeProg->getUniform("ka"), 0.3f, 0.0f, 0.0f);
-                        glUniform3f(shapeProg->getUniform("kd"), 0.9f, 0.2f, 0.2f);
-                        break;
+        float rW = 0.6f;
+        float gW = 0.8f;
+        float bW = 1.0f;
+        for (int i = 0; i < nodes.size(); i++) {
+            float randColor = sin(5 * i) / 2 + 0.5f;
+            randColor += sin(0.5*i) / 2 + 0.5f;
+            randColor += abs(cos(i)) / 2 + 0.5f;
+            randColor /= 3;
+            glUniform3f(shapeProg->getUniform("ka"), rW*randColor, gW*randColor, bW*randColor);
+            glUniform3f(shapeProg->getUniform("kd"), rW*randColor, gW*randColor, bW*randColor);
+            auto nodeRow = nodes[i];
+            for (auto node : nodeRow) {
+                if (node != NULL) {
+                    ////////////////////////////////////////////////////////////////
+
+                    for (glm::vec3 pathPos : path) {
+                        if (node->pos == pathPos) {
+                            glUniform3f(shapeProg->getUniform("ka"), 0.3f, 0.0f, 0.0f);
+                            glUniform3f(shapeProg->getUniform("kd"), 0.9f, 0.2f, 0.2f);
+                            break;
+                        }
+                        else {
+                            glUniform3f(shapeProg->getUniform("ka"), rW*randColor, gW*randColor, bW*randColor);
+                            glUniform3f(shapeProg->getUniform("kd"), rW*randColor, gW*randColor, bW*randColor);
+                        }
                     }
-                    else {
-                        glUniform3f(shapeProg->getUniform("ka"), rW*randColor, gW*randColor, bW*randColor);
-                        glUniform3f(shapeProg->getUniform("kd"), rW*randColor, gW*randColor, bW*randColor);
-                    }
+                    ////////////////////////////////////////////////////////////////
+
+
+                    MV->pushMatrix();
+
+                    MV->translate(node->pos);
+                    MV->scale(0.75f);
+                    MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+                    glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+                    PmShape->draw();
+
+                    MV->popMatrix();
                 }
-                ////////////////////////////////////////////////////////////////
-
-
-                MV->pushMatrix();
-
-                MV->translate(node->pos);
-                MV->scale(0.75f);
-                MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-                glUniformMatrix4fv(shapeProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-                PmShape->draw();
-
-                MV->popMatrix();
             }
         }
-    }
 
-    shapeProg->unbind();
+        shapeProg->unbind();
+    }
 
     // --- draw each edge ---
-    simpleProg->bind();
+    if (true) {
+        simpleProg->bind();
 
-    glUniformMatrix4fv(simpleProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-    glUniformMatrix4fv(simpleProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+        glUniformMatrix4fv(simpleProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+        glUniformMatrix4fv(simpleProg->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
 
-    glLineWidth(2);
-    glColor3f(0.4f, 0.4f, 0.8f);
-    glBegin(GL_LINES);
-    for (int i = 0; i < nodes.size(); ++i) {
-        for (int j = 0; j < nodes[i].size(); j++) {
-            //float alpha = i / (gridNx - 1.0f);
-            //float x = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf;
+        glLineWidth(2);
+        glColor3f(0.4f, 0.4f, 0.8f);
+        glBegin(GL_LINES);
+        for (int i = 0; i < nodes.size(); ++i) {
+            for (int j = 0; j < nodes[i].size(); j++) {
+                //float alpha = i / (gridNx - 1.0f);
+                //float x = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf;
 
-            auto node = nodes[i][j];
-            if (node != NULL) {
-                glm::vec3 pos0 = node->pos;
-                for (auto neighbor : node->neighbors) {
-                    glm::vec3 pos1 = neighbor->pos;
+                auto node = nodes[i][j];
+                if (node != NULL) {
+                    glm::vec3 pos0 = node->pos;
+                    for (auto neighbor : node->neighbors) {
+                        glm::vec3 pos1 = neighbor->pos;
 
-                    glVertex3f(pos0.x, pos0.y, pos0.z);
-                    glVertex3f(pos1.x, pos1.y, pos1.z);
+                        glVertex3f(pos0.x, pos0.y, pos0.z);
+                        glVertex3f(pos1.x, pos1.y, pos1.z);
+                    }
                 }
             }
         }
+
+        glEnd();
+        simpleProg->unbind();
     }
 
-    glEnd();
-    simpleProg->unbind();
 
     // --- draw start & goal ---
     // start
@@ -458,19 +464,19 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         shapeProg->unbind();
 
         // draw links
-        simpleProg->bind();
-        glLineWidth(8);
-        glColor3f(0.9f, 0.9f, 0.0f);
-        glBegin(GL_LINES);
-        glm::vec3 pos0 = start->pos;
-        for (auto neighbor : start->neighbors) {
-            glm::vec3 pos1 = neighbor->pos;
+        //simpleProg->bind();
+        //glLineWidth(8);
+        //glColor3f(0.9f, 0.9f, 0.0f);
+        //glBegin(GL_LINES);
+        //glm::vec3 pos0 = start->pos;
+        //for (auto neighbor : start->neighbors) {
+        //    glm::vec3 pos1 = neighbor->pos;
 
-            glVertex3f(pos0.x, pos0.y, pos0.z);
-            glVertex3f(pos1.x, pos1.y, pos1.z);
-        }
-        glEnd();
-        simpleProg->unbind();
+        //    glVertex3f(pos0.x, pos0.y, pos0.z);
+        //    glVertex3f(pos1.x, pos1.y, pos1.z);
+        //}
+        //glEnd();
+        //simpleProg->unbind();
     }
     
     // goal
@@ -491,39 +497,40 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         shapeProg->unbind();
 
         //// draw links
-        simpleProg->bind();
-        glLineWidth(8);
-        glColor3f(0.0f, 0.9f, 0.0f);
-        glBegin(GL_LINES);
-        glm::vec3 pos0 = goal->pos;
-        for (auto neighbor : goal->neighbors) {
-            glm::vec3 pos1 = neighbor->pos;
-
-            glVertex3f(pos0.x, pos0.y, pos0.z);
-            glVertex3f(pos1.x, pos1.y, pos1.z);
-        }
-        glEnd();
-        simpleProg->unbind();
-    }
-    
-    // --- draw provided path ---
-    if (path.size() > 0) {
-        simpleProg->bind();
-        glLineWidth(15);
-        glColor3f(0.8f, 0.4f, 0.4f);
-        glBegin(GL_LINE_STRIP);
-        //for (int i = 0; i < path.size() - 1; i++) {
-        //    glm::vec3 pos0 = path[i]->pos;
-        //    glm::vec3 pos1 = path[i + 1]->pos;
+        //simpleProg->bind();
+        //glLineWidth(8);
+        //glColor3f(0.0f, 0.9f, 0.0f);
+        //glBegin(GL_LINES);
+        //glm::vec3 pos0 = goal->pos;
+        //for (auto neighbor : goal->neighbors) {
+        //    glm::vec3 pos1 = neighbor->pos;
 
         //    glVertex3f(pos0.x, pos0.y, pos0.z);
         //    glVertex3f(pos1.x, pos1.y, pos1.z);
         //}
-        for (glm::vec3 node : path) {
-            glVertex3f(node.x, node.y, node.z);
-        }
-        glEnd();
-        simpleProg->unbind();
+        //glEnd();
+        //simpleProg->unbind();
     }
+    
+    // --- draw provided path ---
+    if (true) {
+        if (path.size() > 0) {
+            simpleProg->bind();
+            glLineWidth(15);
+            glColor3f(0.8f, 0.4f, 0.4f);
+            glBegin(GL_LINE_STRIP);
+            //for (int i = 0; i < path.size() - 1; i++) {
+            //    glm::vec3 pos0 = path[i]->pos;
+            //    glm::vec3 pos1 = path[i + 1]->pos;
 
+            //    glVertex3f(pos0.x, pos0.y, pos0.z);
+            //    glVertex3f(pos1.x, pos1.y, pos1.z);
+            //}
+            for (glm::vec3 node : path) {
+                glVertex3f(node.x, node.y, node.z);
+            }
+            glEnd();
+            simpleProg->unbind();
+        }
+    }
 }

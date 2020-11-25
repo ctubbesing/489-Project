@@ -548,7 +548,7 @@ void render()
     //progTerrain->bind();
     //glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     //MV->pushMatrix();
-    scene->draw(P, MV);
+    scene->draw(P, MV, t);
     //MV->popMatrix();
     //progTerrain->unbind();
     

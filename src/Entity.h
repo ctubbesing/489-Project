@@ -42,10 +42,16 @@ public:
     void update(double t);
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV);
 
+
 private:
     glm::vec3 pos;
     float rot;
     glm::vec3 goal;
+
+    enum EntityState {
+        IDLE,
+        TRAVELING
+    } state;
 
     void generatePath();
 

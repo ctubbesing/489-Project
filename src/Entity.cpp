@@ -4,6 +4,7 @@
 #include "MatrixStack.h"
 
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
 
 using namespace std;
 
@@ -12,7 +13,8 @@ class Program;
 Entity::Entity() :
     pos(glm::vec3(0.0f, 0.0f, 0.0f)),
     goal(glm::vec3(0.0f, 0.0f, 0.0f)),
-    rot(0.0f)
+    rot(0.0f),
+    state(IDLE)
 {
     pg = make_shared<PathGraph>();
 }
@@ -20,7 +22,8 @@ Entity::Entity() :
 Entity::Entity(glm::vec3 _pos, float sceneEdgeLength, int unitsPerPGNode) :
     pos(_pos),
     goal(glm::vec3(0.0f, 0.0f, 0.0f)),
-    rot(0.0f)
+    rot(0.0f),
+    state(IDLE)
 {
     pg = make_shared<PathGraph>(sceneEdgeLength, unitsPerPGNode);
 }
@@ -63,6 +66,15 @@ void Entity::setGoal(glm::vec3 _goal)
 
 void Entity::update(double t)
 {
+    //switch (state) {
+    //    case IDLE:
+    //        if pos
+    //        break;
+    //    case TRAVELING:
+
+    //        break;
+    //}
+
     if (path.size() == 0) {
         return;
     }
@@ -78,7 +90,7 @@ void Entity::update(double t)
     int pathSegments = path.size();
     float u = (float)fmod(t, pathSegments);
 
-    /* -- draw moving helicopter -- */
+    /* -- draw moving entity -- */
     int u_int = (int)floor(u);
     float u_frac = u - u_int;
 
@@ -86,15 +98,17 @@ void Entity::update(double t)
 
     // calculate G matrix for position
     glm::mat4 G_position;
-    G_position[0] = glm::vec4(path[u_int], 0.0f);
-    G_position[1] = glm::vec4(path[(u_int + 1) % pathSegments], 0.0f);
-    G_position[2] = glm::vec4(path[(u_int + 2) % pathSegments], 0.0f);
-    G_position[3] = glm::vec4(path[(u_int + 3) % pathSegments], 0.0f);
+    G_position[0] = glm::vec4(path[max(u_int - 1, 0)], 0.0f);
+    G_position[1] = glm::vec4(path[u_int], 0.0f);
+    G_position[2] = glm::vec4(path[min(u_int + 1, pathSegments - 1)], 0.0f);
+    G_position[3] = glm::vec4(path[min(u_int + 2, pathSegments - 1)], 0.0f);
+    //G_position[0] = glm::vec4(path[u_int], 0.0f);
+    //G_position[1] = glm::vec4(path[(u_int + 1) % pathSegments], 0.0f);
+    //G_position[2] = glm::vec4(path[(u_int + 2) % pathSegments], 0.0f);
+    //G_position[3] = glm::vec4(path[(u_int + 3) % pathSegments], 0.0f);
 
     // add position info to transformation matrix
     pos = G_position * (B*uVec);
-    //glm::vec3 heli_p = G_position * (B*uVec);
-
 }
 
 void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)

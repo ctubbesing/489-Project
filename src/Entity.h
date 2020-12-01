@@ -62,7 +62,7 @@ public:
 
 private:
     glm::vec3 pos;
-    float rot;
+    glm::mat4 rot;
     glm::vec3 goal;
 
     enum EntityState {

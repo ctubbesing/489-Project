@@ -115,8 +115,6 @@ void Entity::update(double t)
     B /= 2;
 
     // use arc-length parametrization to get u
-    // update tMax
-    int tMax = 8;
 
     // generate u/s table if necessary
     int pathSegments = path.size();
@@ -152,6 +150,10 @@ void Entity::update(double t)
     }
 
     // convert t to s and implement time control
+    // update tMax
+    float v = 7; // units/sec
+    float dist = usTable.back().second; // units
+    float tMax = dist / v;
     float tNorm = (float)fmod(t, tMax) / tMax;
 
     float sNorm = tNorm;

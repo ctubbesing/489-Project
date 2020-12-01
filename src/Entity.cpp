@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "Entity.h"
 #include "Shape.h"
 #include "ShapeSkin.h"
@@ -13,8 +15,8 @@ using namespace std;
 class Program;
 
 Entity::Entity() :
-    pos(glm::vec3(0.0f, 0.0f, 0.0f)),
-    goal(glm::vec3(0.0f, 0.0f, 0.0f)),
+    pos(glm::vec3(0.0f)),
+    goal(glm::vec3(0.0f)),
     rot(0.0f),
     state(IDLE),
     currentFrame(0)
@@ -24,7 +26,7 @@ Entity::Entity() :
 
 Entity::Entity(glm::vec3 _pos, float sceneEdgeLength, int unitsPerPGNode) :
     pos(_pos),
-    goal(glm::vec3(0.0f, 0.0f, 0.0f)),
+    goal(glm::vec3(0.0f)),
     rot(0.0f),
     state(IDLE),
     currentFrame(0)
@@ -119,8 +121,29 @@ void Entity::update(double t)
     //G_position[2] = glm::vec4(path[(u_int + 2) % pathSegments], 0.0f);
     //G_position[3] = glm::vec4(path[(u_int + 3) % pathSegments], 0.0f);
 
-    // add position info to transformation matrix
+    // update position
+    glm::vec3 oldPos = pos;
     pos = G_position * (B*uVec);
+
+    // update rotation
+    if (pos != oldPos) {
+
+        float angle_A = std::atan2(1.0f, 0.0f);
+        cout << "atan2(1,0) = " << angle_A << endl;
+        float angle_B = std::atan2(pos.z, pos.x);
+        //float angle_B = std::atan2(pos.z - oldPos.z, pos.x - oldPos.x);
+
+        float angle_from_A_to_B = angle_B - angle_A;
+        float angle_from_B_to_A = angle_A - angle_B;
+
+        rot = angle_B;
+        //rot = atan(glm::dot(glm::vec3(1.0f, 0.0f, 0.0f), glm::normalize(pos - oldPos)));
+        //if (pos.x > oldPos.x) {
+        //    rot *= -1;
+        //}
+        cout << "rotation = " << rot << endl;
+    }
+    //rot = glm::lookAt(pos, oldPos, glm::vec3(0.0f, 1.0f, 0.0f));
 
     // update current frame
     double fps = 30;
@@ -131,6 +154,11 @@ void Entity::update(double t)
 void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
 {
     // draw skin
+    MV->pushMatrix();
+    MV->translate(pos);
+    MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
+    //MV->multMatrix(rot);
+
     for (const auto &shape : skins) {
         MV->pushMatrix();
 
@@ -151,7 +179,7 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
         MV->popMatrix();
     }
 
-
+    MV->popMatrix();
 
 
 

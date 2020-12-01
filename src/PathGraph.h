@@ -72,7 +72,7 @@ public:
     void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
     void setShape(std::shared_ptr<Shape> shape) { PmShape = shape; }
 
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector<glm::vec3> &path = std::vector<glm::vec3>());
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector<glm::vec3> &path = std::vector<glm::vec3>(), bool drawFullPG = true);
 
     ///////////////////////////////////////////////////
     void clear35();

@@ -366,10 +366,10 @@ vector< glm::vec3 > PathGraph::findPath()
     return finalPath;
 }
 
-void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path)
+void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool drawFullPG)
 {
     // --- draw normal nodes ---
-    if (true) {
+    if (drawFullPG) {
         shapeProg->bind();
 
         //glUniform3f(shapeProg->getUniform("kd"), 0.2f, 0.5f, 0.6f);
@@ -422,7 +422,7 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
     }
 
     // --- draw each edge ---
-    if (true) {
+    if (drawFullPG) {
         simpleProg->bind();
 
         glUniformMatrix4fv(simpleProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));

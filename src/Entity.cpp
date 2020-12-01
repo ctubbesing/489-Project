@@ -304,7 +304,5 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool dr
     //skin->draw();
     
     //progSkin->unbind();
-    if (drawPG) {
-        pg->draw(P, MV, path);
-    }
+    pg->draw(P, MV, path, drawPG);
 }

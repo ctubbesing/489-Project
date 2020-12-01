@@ -33,7 +33,7 @@ class DataInput
 public:
     vector<string> textureData;
     vector< vector<string> > meshData;
-    string skeletonData;
+    vector<string> skeletonData;
 };
 
 DataInput dataInput;
@@ -58,7 +58,7 @@ shared_ptr<Scene> scene = NULL;
 shared_ptr<Entity> ent;
 vector< shared_ptr<ShapeSkin> > shapes;
 vector<glm::mat4> bindPose;
-vector< vector<glm::mat4> > frames;
+vector< vector< vector<glm::mat4> > > frames;
 double t, t0;
 
 ///////////////////////////////
@@ -138,82 +138,88 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 
 void loadSkeletonData()
 {
-    string filename = DATA_DIR + dataInput.skeletonData;
-    ifstream in;
-    in.open(filename);
-    if (!in.good()) {
-        cout << "Cannot read " << filename << endl;
-        return;
-    }
-    cout << "Loading " << filename << endl;
-
-    string line;
-    bool countsLoaded = false;
-    bool bindPoseLoaded = false;
-    int frameCount, boneCount;
-    int currentFrame = 0;
-    while (1) {
-        getline(in, line);
-        if (in.eof()) {
-            break;
+    for (int i = 0; i < dataInput.skeletonData.size(); i++) {
+        string filename = DATA_DIR + dataInput.skeletonData[i];
+        ifstream in;
+        in.open(filename);
+        if (!in.good()) {
+            cout << "Cannot read " << filename << endl;
+            return;
         }
-        if (line.empty()) {
-            continue;
-        }
-        // Skip comments
-        if (line.at(0) == '#') {
-            continue;
-        }
-        // Parse lines
-        stringstream ss(line);
-        if (!countsLoaded) { // load frameCount & boneCount
-            ss >> frameCount >> boneCount;
-            countsLoaded = true;
-        }
-        else if (!bindPoseLoaded) {
-            for (int bone = 0; bone < boneCount; bone++) {
-                // load quaternion
-                float qx, qy, qz, qw;
-                ss >> qx >> qy >> qz >> qw;
-                glm::quat q(qw, qx, qy, qz);
+        cout << "Loading " << filename << endl;
 
-                // load translation vector
-                float vx, vy, vz;
-                ss >> vx >> vy >> vz;
-                glm::vec3 v(vx, vy, vz);
-
-                glm::mat4 E = glm::mat4_cast(q);
-                E[3] = glm::vec4(v, 1.0f);
-
-                bindPose.push_back(E);
+        string line;
+        vector< vector<glm::mat4> > animation;
+        bool countsLoaded = false;
+        bool bindPoseLoaded = false;
+        int frameCount, boneCount;
+        int currentFrame = 0;
+        while (1) {
+            getline(in, line);
+            if (in.eof()) {
+                break;
             }
-
-            bindPoseLoaded = true;
-        }
-        else { // load frame data
-            frames.push_back(vector<glm::mat4>());
-
-            for (int bone = 0; bone < boneCount; bone++) {
-                // load quaternion
-                float qx, qy, qz, qw;
-                ss >> qx >> qy >> qz >> qw;
-                glm::quat q(qw, qx, qy, qz);
-
-                // load translation vector
-                float vx, vy, vz;
-                ss >> vx >> vy >> vz;
-                glm::vec3 v(vx, vy, vz);
-
-                glm::mat4 E = glm::mat4_cast(q);
-                E[3] = glm::vec4(v, 1.0f);
-
-                frames[currentFrame].push_back(E);
+            if (line.empty()) {
+                continue;
             }
+            // Skip comments
+            if (line.at(0) == '#') {
+                continue;
+            }
+            // Parse lines
+            stringstream ss(line);
+            if (!countsLoaded) { // load frameCount & boneCount
+                ss >> frameCount >> boneCount;
+                countsLoaded = true;
+            }
+            else if (!bindPoseLoaded) {
+                for (int bone = 0; bone < boneCount; bone++) {
+                    // load quaternion
+                    float qx, qy, qz, qw;
+                    ss >> qx >> qy >> qz >> qw;
+                    glm::quat q(qw, qx, qy, qz);
 
-            currentFrame++;
+                    // load translation vector
+                    float vx, vy, vz;
+                    ss >> vx >> vy >> vz;
+                    glm::vec3 v(vx, vy, vz);
+
+                    glm::mat4 E = glm::mat4_cast(q);
+                    E[3] = glm::vec4(v, 1.0f);
+
+                    bindPose.push_back(E);
+                }
+
+                bindPoseLoaded = true;
+            }
+            else { // load frame data
+                //frames[i].push_back(vector<glm::mat4>());
+                animation.push_back(vector<glm::mat4>());
+
+                for (int bone = 0; bone < boneCount; bone++) {
+                    // load quaternion
+                    float qx, qy, qz, qw;
+                    ss >> qx >> qy >> qz >> qw;
+                    glm::quat q(qw, qx, qy, qz);
+
+                    // load translation vector
+                    float vx, vy, vz;
+                    ss >> vx >> vy >> vz;
+                    glm::vec3 v(vx, vy, vz);
+
+                    glm::mat4 E = glm::mat4_cast(q);
+                    E[3] = glm::vec4(v, 1.0f);
+
+                    //frames[i][currentFrame].push_back(E);
+                    animation[currentFrame].push_back(E);
+                }
+
+                currentFrame++;
+            }
         }
+        in.close();
+        frames.push_back(animation);
     }
-    in.close();
 }
 
 static void init()
@@ -390,9 +396,9 @@ static void init()
     //ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
     ent->setSkinProgram(progSkin);
 
-    vector< vector< vector< glm::mat4 > > > f;
-    f.push_back(frames);
-    SkinInfo s(shapes, f, bindPose, textureMap);
+    //vector< vector< vector< glm::mat4 > > > f;
+    //f.push_back(frames);
+    SkinInfo s(shapes, frames, bindPose, textureMap);
     ent->setSkinInfo(s);
     //ent->setSkin(eShape);//////////////////////////////////
     ent->setPGProgs(progSimple, progShapes);
@@ -554,7 +560,7 @@ void render()
     //progTerrain->bind();
     //glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     //MV->pushMatrix();
-    scene->draw(P, MV, t, keyToggles[(unsigned)'e']);
+    scene->draw(P, MV, t, !keyToggles[(unsigned)'e']);
     //MV->popMatrix();
     //progTerrain->unbind();
     
@@ -647,7 +653,7 @@ void loadDataInputFile()
         }
         else if (key.compare("SKELETON") == 0) {
             ss >> value;
-            dataInput.skeletonData = value;
+            dataInput.skeletonData.push_back(value);
         }
         else {
             cout << "Unknown key word: " << key << endl;

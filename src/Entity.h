@@ -56,7 +56,7 @@ public:
     void setSkinInfo(SkinInfo &s);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-    void update(double t);
+    void update(double _t);
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true);
 
 
@@ -69,6 +69,8 @@ private:
         IDLE,
         TRAVELING
     } state;
+
+    double t, t0;
 
     void generatePath();
 

@@ -11,6 +11,6 @@ MESH bigvegas_Walking_newVegas_Elvis_MouthAnimGeo.obj bigvegas_Walking_newVegas_
 MESH bigvegas_Walking_newVegas_Elvis_EyesAnimGeo.obj bigvegas_Walking_newVegas_Elvis_EyesAnimGeo_skin.txt MouthMAP.png
 MESH bigvegas_Walking_newVegas_Elvis_BrowsAnimGeo.obj bigvegas_Walking_newVegas_Elvis_BrowsAnimGeo_skin.txt MouthMAP.png
 #SKELETON bigvegas_Walking_skel.txt
-#SKELETON bigvegas_Walking_skel2.txt
+SKELETON bigvegas_Walking_skel2.txt
 #SKELETON throw_skel.txt
-SKELETON bigvegas_Capoeira_skel.txt
+#SKELETON bigvegas_Capoeira_skel.txt

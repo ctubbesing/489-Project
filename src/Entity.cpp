@@ -1,7 +1,9 @@
 #include "Entity.h"
 #include "Shape.h"
+#include "ShapeSkin.h"
 #include "Program.h"
 #include "MatrixStack.h"
+#include "Texture.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
@@ -14,7 +16,8 @@ Entity::Entity() :
     pos(glm::vec3(0.0f, 0.0f, 0.0f)),
     goal(glm::vec3(0.0f, 0.0f, 0.0f)),
     rot(0.0f),
-    state(IDLE)
+    state(IDLE),
+    currentFrame(0)
 {
     pg = make_shared<PathGraph>();
 }
@@ -23,7 +26,8 @@ Entity::Entity(glm::vec3 _pos, float sceneEdgeLength, int unitsPerPGNode) :
     pos(_pos),
     goal(glm::vec3(0.0f, 0.0f, 0.0f)),
     rot(0.0f),
-    state(IDLE)
+    state(IDLE),
+    currentFrame(0)
 {
     pg = make_shared<PathGraph>(sceneEdgeLength, unitsPerPGNode);
 }
@@ -63,6 +67,14 @@ void Entity::setGoal(glm::vec3 _goal)
 //{
 //    pg
 //}
+
+void Entity::setSkinInfo(SkinInfo &s)
+{
+    skins = s.skins;
+    frames = s.frames;
+    bindPose = s.bindPose;
+    textureMap = s.textureMap;
+}
 
 void Entity::update(double t)
 {
@@ -109,30 +121,62 @@ void Entity::update(double t)
 
     // add position info to transformation matrix
     pos = G_position * (B*uVec);
+
+    // update current frame
+    double fps = 30;
+    int frameCount = frames[state].size();
+    currentFrame = ((int)floor(t*fps)) % frameCount;
 }
 
 void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
 {
     // draw skin
-    progSkin->bind();
+    for (const auto &shape : skins) {
+        MV->pushMatrix();
 
-    glUniform3f(progSkin->getUniform("kd"), 0.2f, 0.5f, 0.6f);
-    glUniform3f(progSkin->getUniform("ka"), 0.02f, 0.05f, 0.06f);
-    glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+        progSkin->bind();
+        textureMap[shape->getTextureFilename()]->bind(progSkin->getUniform("kdTex"));
+        glLineWidth(1.0f); // for wireframe
+        MV->scale(0.05f);
+        glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+        glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+        glUniform3f(progSkin->getUniform("ka"), 0.1f, 0.1f, 0.1f);
+        glUniform3f(progSkin->getUniform("ks"), 0.1f, 0.1f, 0.1f);
+        glUniform1f(progSkin->getUniform("s"), 200.0f);
+        shape->setProgram(progSkin);
+        shape->update(bindPose, frames[state][currentFrame]);
+        shape->draw();
+        progSkin->unbind();
 
-    MV->pushMatrix();
+        MV->popMatrix();
+    }
 
-    MV->translate(pos);
-    MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
-    MV->translate(glm::vec3(0.0f, 1.5f, 0.0f)); // shape offset prolly 0 anyways
-    glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    skin->draw();
 
-    MV->popMatrix();
 
-    skin->draw();
+
+
+
+
+
+    //progSkin->bind();
+
+    //glUniform3f(progSkin->getUniform("kd"), 0.2f, 0.5f, 0.6f);
+    //glUniform3f(progSkin->getUniform("ka"), 0.02f, 0.05f, 0.06f);
+    //glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+
+    //MV->pushMatrix();
+
+    //MV->translate(pos);
+    //MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
+    //MV->translate(glm::vec3(0.0f, 1.5f, 0.0f)); // shape offset prolly 0 anyways
+    //glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //skin->draw();
+
+    //MV->popMatrix();
+
+    //skin->draw();
     
-    progSkin->unbind();
+    //progSkin->unbind();
 
     pg->draw(P, MV, path);
 }

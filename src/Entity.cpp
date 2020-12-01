@@ -47,6 +47,7 @@ void Entity::generatePath()
     pg->updateGoal(goal);
 
     path = pg->findPath();
+    usTable.clear();
 }
 
 void Entity::regenPG()
@@ -80,6 +81,16 @@ void Entity::setSkinInfo(SkinInfo &s)
     textureMap = s.textureMap;
 }
 
+float arcLength(float u_a, float u_b, glm::mat4 &B, glm::mat4 &G) {
+    glm::vec4 uVec_a(1.0f, u_a, u_a*u_a, u_a*u_a*u_a);
+    glm::vec4 uVec_b(1.0f, u_b, u_b*u_b, u_b*u_b*u_b);
+
+    glm::vec4 P_ua = G * (B*uVec_a);
+    glm::vec4 P_ub = G * (B*uVec_b);
+
+    return glm::length(P_ub - P_ua);
+}
+
 void Entity::update(double t)
 {
     //switch (state) {
@@ -103,8 +114,78 @@ void Entity::update(double t)
     B[3] = glm::vec4(-1.0f, 3.0f, -3.0f, 1.0f);
     B /= 2;
 
+    // use arc-length parametrization to get u
+    // update tMax
+    int tMax = 8;
+
+    // generate u/s table if necessary
     int pathSegments = path.size();
-    float u = (float)fmod(t, pathSegments);
+    if (usTable.size() == 0) {
+        float d_u = 0.05f;
+        float u_table = 0.0f;
+        float s_table = 0.0f;
+        usTable.push_back(make_pair(u_table, s_table));
+
+        // iterate for each curve
+        for (int i = 0; i < pathSegments; i++) {
+            // calculate G for this curve
+            glm::mat4 G;
+            //G[0] = glm::vec4(keyframes[i], 0.0f);
+            //G[1] = glm::vec4(keyframes[(i + 1) % numCurves], 0.0f);
+            //G[2] = glm::vec4(keyframes[(i + 2) % numCurves], 0.0f);
+            //G[3] = glm::vec4(keyframes[(i + 3) % numCurves], 0.0f);
+
+            G[0] = glm::vec4(path[max(i - 1, 0)], 0.0f);
+            G[1] = glm::vec4(path[i], 0.0f);
+            G[2] = glm::vec4(path[min(i + 1, pathSegments - 1)], 0.0f);
+            G[3] = glm::vec4(path[min(i + 2, pathSegments - 1)], 0.0f);
+
+
+            u_table = 0.0f;
+            for (int j = 0; j < (1.0f / d_u); j++) {
+                s_table += arcLength(u_table, u_table + d_u, B, G);
+                u_table += d_u;
+
+                usTable.push_back(make_pair(u_table + i, s_table));
+            }
+        }
+    }
+
+    // convert t to s and implement time control
+    float tNorm = (float)fmod(t, tMax) / tMax;
+
+    float sNorm = tNorm;
+    //float sNorm;
+    //switch (keyPresses[(unsigned)'s'] % 3) {
+    //case 0: // default - normal time
+    //    sNorm = tNorm;
+    //    break;
+    //case 1: // provided example - s = -2t^3 + 3t^2
+    //    sNorm = -2 * (tNorm*tNorm*tNorm) + 3 * (tNorm*tNorm);
+    //    break;
+    //case 2: // custom example - sin function
+    //    sNorm = (sin(t) + 1.5f) / 1.5f;
+    //    break;
+    //}
+
+    float sMax = usTable.back().second;
+    float s = sMax * sNorm;
+
+    // convert s to u
+    size_t n = 0;
+    while (usTable[n].second <= s && n < (usTable.size() - 1)) {
+        n++;
+    }
+
+    float s1 = usTable[n].second;
+    float s0 = (n == 0 ? 0.0f : usTable[n - 1].second);
+    float alpha = (s - s0) / (s1 - s0);
+
+    float u1 = usTable[n].first;
+    float u0 = (n == 0 ? 0.0f : usTable[n - 1].first);
+    float u = u0 + alpha * (u1 - u0);
+
+    //float u = (float)fmod(t, pathSegments);
 
     /* -- draw moving entity -- */
     int u_int = (int)floor(u);

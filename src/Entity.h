@@ -73,6 +73,8 @@ private:
     void generatePath();
 
     std::shared_ptr<PathGraph> pg;
+    std::vector<glm::vec3> path;
+    std::vector< std::pair<float, float> > usTable;
     //std::shared_ptr<Shape> skin;//////////////////////////////////////////////////////////////////temp until ShapeSkin works better
 
     std::vector< std::shared_ptr<ShapeSkin> > skins;
@@ -81,7 +83,6 @@ private:
     std::map< std::string, std::shared_ptr<Texture> > textureMap;
     int currentFrame;
 
-    std::vector<glm::vec3> path;
     std::shared_ptr<Program> progSkin;
 
 };

@@ -554,7 +554,7 @@ void render()
     //progTerrain->bind();
     //glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     //MV->pushMatrix();
-    scene->draw(P, MV, t);
+    scene->draw(P, MV, t, keyToggles[(unsigned)'e']);
     //MV->popMatrix();
     //progTerrain->unbind();
     

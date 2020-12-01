@@ -19,8 +19,10 @@ using namespace std;
 PathGraph::PathGraph(float _edgeLength, int _unitsPerNode) :
     edgeLength(_edgeLength),
     unitsPerNode(_unitsPerNode),
-    start(NULL),
-    goal(NULL)
+    start(make_shared<PathNode>(glm::vec3(0.0f))),
+    goal(make_shared<PathNode>(glm::vec3(0.0f)))
+    //start(NULL),
+    //goal(NULL)
 {
     regenerate();
 }
@@ -100,6 +102,13 @@ void PathGraph::regenerate()
 
 void PathGraph::regenerate(glm::vec3 _start, glm::vec3 _goal)
 {
+    if (start == NULL) {
+        start = make_shared<PathNode>(glm::vec3(0.0f));
+    }
+    if (goal == NULL) {
+        goal = make_shared<PathNode>(glm::vec3(0.0f));
+    }
+    
     start->pos = _start;
     goal->pos = _goal;
 

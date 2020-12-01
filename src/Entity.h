@@ -57,7 +57,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     void update(double t);
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV);
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true);
 
 
 private:

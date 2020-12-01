@@ -25,7 +25,7 @@ void Scene::generateScene(bool flat)
     terrain->generateTerrain(flat);
 }
 
-void Scene::draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, double t)
+void Scene::draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, double t, bool drawPG)
 {
     progTerrain->bind();
     terrain->draw(P, MV);
@@ -33,6 +33,6 @@ void Scene::draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV
 
     for (auto entity : entities) {
         entity->update(t);
-        entity->draw(P, MV);
+        entity->draw(P, MV, drawPG);
     }
 }

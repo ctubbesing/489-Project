@@ -181,7 +181,13 @@ void Entity::update(double t)
 
     float s1 = usTable[n].second;
     float s0 = (n == 0 ? 0.0f : usTable[n - 1].second);
-    float alpha = (s - s0) / (s1 - s0);
+    float alpha;
+    if (s1 - s0 == 0) {
+        alpha = 0;
+    }
+    else {
+        alpha = (s - s0) / (s1 - s0);
+    }
 
     float u1 = usTable[n].first;
     float u0 = (n == 0 ? 0.0f : usTable[n - 1].first);
@@ -221,7 +227,7 @@ void Entity::update(double t)
     currentFrame = ((int)floor(t*fps)) % frameCount;
 }
 
-void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
+void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool drawPG)
 {
     // draw skin
     MV->pushMatrix();
@@ -275,6 +281,7 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
     //skin->draw();
     
     //progSkin->unbind();
-
-    pg->draw(P, MV, path);
+    if (drawPG) {
+        pg->draw(P, MV, path);
+    }
 }

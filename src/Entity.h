@@ -54,16 +54,20 @@ public:
     void setPos(glm::vec3 _pos);
     void setGoal(glm::vec3 _goal);
     void setSkinInfo(SkinInfo &s);
+    void speedUp() { speed += 3.0f; }
+    void resetSpeed() { speed = 7.0f; }
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     void update(double _t);
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true);
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true, bool drawPath = true);
 
 
 private:
     glm::vec3 pos;
     glm::mat4 rot;
     glm::vec3 goal;
+
+    float speed;
 
     enum EntityState {
         IDLE,

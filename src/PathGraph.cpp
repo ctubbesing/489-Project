@@ -447,7 +447,7 @@ vector< glm::vec3 > PathGraph::findPath()
     return finalPath;
 }
 
-void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool drawFullPG)
+void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool drawFullPG, bool drawPath)
 {
     // --- draw normal nodes ---
     if (drawFullPG) {
@@ -523,8 +523,8 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
                     for (auto neighbor : node->neighbors) {
                         glm::vec3 pos1 = neighbor->pos;
 
-                        glVertex3f(pos0.x, pos0.y, pos0.z);
-                        glVertex3f(pos1.x, pos1.y, pos1.z);
+                        glVertex3f(pos0.x, pos0.y + 0.2f, pos0.z);
+                        glVertex3f(pos1.x, pos1.y + 0.2f, pos1.z);
                     }
                 }
             }
@@ -537,7 +537,7 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
 
     // --- draw start & goal ---
     // start
-    if (start != NULL) {
+    if (start != NULL && drawPath) {
         // draw shape
         shapeProg->bind();
         glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
@@ -603,7 +603,7 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
     }
     
     // --- draw provided path ---
-    if (true) {
+    if (drawPath) {
         if (path.size() > 0) {
             simpleProg->bind();
             glLineWidth(15);

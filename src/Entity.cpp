@@ -22,6 +22,7 @@ Entity::Entity() :
     //rot(0.0f),
     state(IDLE),
     currentFrame(0),
+    speed(7.0f),
     t(0),
     t0(0)
 {
@@ -36,6 +37,7 @@ Entity::Entity(glm::vec3 _pos, const shared_ptr<Scene> _scene, float sceneEdgeLe
     //rot(0.0f),
     state(IDLE),
     currentFrame(0),
+    speed(7.0f),
     t(0),
     t0(0)
 {
@@ -116,7 +118,7 @@ void Entity::update(double _t)
             // switch to idle once goal is reached
             glm::vec3 distToGo(pos - goal);
             distToGo.y = 0.0f;
-            float minDist = 2.0f;
+            float minDist = 1.0f;
             if (glm::length(distToGo) < minDist) {
                 //cout << "close to goal; switching to idle" << endl;
                 setPos(goal);
@@ -174,9 +176,9 @@ void Entity::update(double _t)
 
             // convert t to s and implement time control
             // update tMax
-            float v = 7; // units/sec
+            //float v = 7; // units/sec
             float dist = usTable.back().second; // units
-            float tMax = dist / v;
+            float tMax = dist / speed;
             float tNorm = (float)fmod(t, tMax) / tMax;
 
             float sNorm = tNorm;
@@ -255,7 +257,7 @@ void Entity::update(double _t)
     currentFrame = ((int)floor(t*fps)) % frameCount;
 }
 
-void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool drawPG)
+void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool drawPG, bool drawPath)
 {
     // draw skin
     MV->pushMatrix();
@@ -310,5 +312,5 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool dr
     //skin->draw();
     
     //progSkin->unbind();
-    pg->draw(P, MV, path, drawPG);
+    pg->draw(P, MV, path, drawPG, drawPath);
 }

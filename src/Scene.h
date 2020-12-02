@@ -37,7 +37,7 @@ public:
         terrain->setProgram(prog);
     }
 
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, double t, bool drawPG = true);
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, double t, bool drawPG = true, bool drawPath = true);
 
 private:
     std::shared_ptr<Terrain> terrain;

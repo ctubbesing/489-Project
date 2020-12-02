@@ -60,6 +60,7 @@ vector< shared_ptr<ShapeSkin> > shapes;
 vector<glm::mat4> bindPose;
 vector< vector< vector<glm::mat4> > > frames;
 double t, t0;
+double tMult = 1.0;
 
 ///////////////////////////////
 shared_ptr<Shape> pmShape;
@@ -117,10 +118,12 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             ent->setGoal(goal);
             break;
         case (unsigned)'x':
-            ent->speedUp();
+            tMult *= 2;
+            //ent->speedUp();
             break;
         case (unsigned)'X':
-            ent->resetSpeed();
+            tMult /= 2;
+            //ent->resetSpeed();
             break;
         //case (unsigned)'/':
         //    testSpot.x = randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2);
@@ -461,7 +464,7 @@ void render()
 {
     // update time
     double t1 = glfwGetTime();
-    float dt = (t1 - t0);
+    float dt = tMult * (t1 - t0);
     if (!keyToggles[(unsigned)' ']) {
         t += dt;
     }
@@ -553,43 +556,43 @@ void render()
     progSimple->unbind();
 
     //// do shape at terrain vertices
-    if (keyToggles[(unsigned)'v']) {
-        progShapes->bind();
+    //if (keyToggles[(unsigned)'v']) {
+    //    progShapes->bind();
 
-        glUniform3f(progShapes->getUniform("kd"), 0.2f, 0.5f, 0.6f);
-        glUniform3f(progShapes->getUniform("ka"), 0.02f, 0.05f, 0.06f);
-        glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    //    glUniform3f(progShapes->getUniform("kd"), 0.2f, 0.5f, 0.6f);
+    //    glUniform3f(progShapes->getUniform("ka"), 0.02f, 0.05f, 0.06f);
+    //    glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 
-        MV->pushMatrix();
-        //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-        //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    //    MV->pushMatrix();
+    //    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
 
-        shared_ptr terrain = scene->getTerrain();
-        for (int i = 0; i < TERRAIN_CELLS + 1; i++) {
-            for (int j = 0; j < TERRAIN_CELLS + 1; j++) {
-                MV->pushMatrix();
-                MV->translate(terrain->getPoint(i, j));
-                MV->rotate(t, 0.0f, 1.0f, 0.0f);
-                MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-                glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-                pmShape->draw();
-                MV->popMatrix();
-            }
-        }
+    //    shared_ptr terrain = scene->getTerrain();
+    //    for (int i = 0; i < TERRAIN_CELLS + 1; i++) {
+    //        for (int j = 0; j < TERRAIN_CELLS + 1; j++) {
+    //            MV->pushMatrix();
+    //            MV->translate(terrain->getPoint(i, j));
+    //            MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    //            MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //            glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //            pmShape->draw();
+    //            MV->popMatrix();
+    //        }
+    //    }
 
-        ////////////////////////////////////////////////////////////////
-        //MV->pushMatrix();
-        //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
-        //MV->rotate(t, 0.0f, 1.0f, 0.0f);
-        //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-        //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-        //pmShape->draw();
-        //MV->popMatrix();
-        ////////////////////////////////////////////////////////////////
+    //    ////////////////////////////////////////////////////////////////
+    //    //MV->pushMatrix();
+    //    //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
+    //    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    //    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //    //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //    //pmShape->draw();
+    //    //MV->popMatrix();
+    //    ////////////////////////////////////////////////////////////////
 
-        MV->popMatrix();
-        progShapes->unbind();
-    }
+    //    MV->popMatrix();
+    //    progShapes->unbind();
+    //}
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //progShapes->bind();

@@ -87,11 +87,13 @@ vector<glm::vec3> Terrain::findTriangle(glm::vec3 pos, float &a, float &b)
 
     // find row/col of landMat where point lies
     float dx = edgeLength / edgeCells;
-    int row0 = floor((pos.z + edgeLength / 2) / dx);
-    int col0 = floor((pos.x + edgeLength / 2) / dx);
+    //int row0 = floor((pos.z + dx / 2) / dx);
+    //int col0 = floor((pos.x + dx / 2) / dx);
+    int row0 = floor((pos.z + (edgeLength + dx) / 2) / dx);
+    int col0 = floor((pos.x + (edgeLength + dx) / 2) / dx);
 
-    cout << "row0 = " << row0 << endl;
-    cout << "col0 = " << col0 << endl;
+    //cout << "row0 = " << row0 << endl;
+    //cout << "col0 = " << col0 << endl;
 
     // test the surrounding triangles using barycentric coordinates
     int i_start = (row0 == 0 ? 0 : -1);
@@ -173,7 +175,7 @@ void Terrain::generateTerrain(bool flat)
                 }
 
                 /////////////////////////////////// temp
-                //landMat[i][j].y = randFloat(0.0f, 0.4f);
+                landMat[i][j].y = randFloat(0.0f, 0.4f);
                 if (i < rows / 4) landMat[i][j].y += 16.0f;
                 int iMid = i - edgeLength / 2;
                 int jMid = j - edgeLength / 2;

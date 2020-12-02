@@ -60,8 +60,8 @@ struct PathNode : std::enable_shared_from_this<PathNode>
 class PathGraph
 {
 public:
-    //PathGraph();
-    PathGraph(float _edgeLength = 100.0f, int _unitsPerNode = 10);
+    PathGraph();
+    PathGraph(const std::shared_ptr<Scene> _scene, float _edgeLength = 100.0f, int _unitsPerNode = 10);
     virtual ~PathGraph();
     void regenerate();
     void regenerate(glm::vec3 start, glm::vec3 goal);
@@ -84,7 +84,7 @@ private:
     std::shared_ptr<PathNode> start;
     std::shared_ptr<PathNode> goal;
     //std::vector< std::shared_ptr<PathNode> > nodes;
-    //std::shared_ptr<Scene> scene;
+    std::shared_ptr<Scene> scene;
     float edgeLength;
     int unitsPerNode;
     std::shared_ptr<Program> simpleProg;

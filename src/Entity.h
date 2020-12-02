@@ -36,7 +36,7 @@ class Entity
 {
 public:
     Entity();
-    Entity(glm::vec3 _pos, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10);
+    Entity(glm::vec3 _pos, const std::shared_ptr<Scene> _scene, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10);
     virtual ~Entity();
     void setSkinProgram(std::shared_ptr<Program> _prog) { progSkin = _prog; }
     //void setPG(std::shared_ptr<PathGraph> _pg) { pg = _pg; }
@@ -87,6 +87,7 @@ private:
 
     std::shared_ptr<Program> progSkin;
 
+    const std::shared_ptr<Scene> scene;
 };
 
 #endif

@@ -16,7 +16,13 @@
 
 using namespace std;
 
-PathGraph::PathGraph(float _edgeLength, int _unitsPerNode) :
+PathGraph::PathGraph()
+{
+
+}
+
+PathGraph::PathGraph(const shared_ptr<Scene> _scene, float _edgeLength, int _unitsPerNode) :
+    scene(_scene),
     edgeLength(_edgeLength),
     unitsPerNode(_unitsPerNode),
     start(make_shared<PathNode>(glm::vec3(0.0f))),
@@ -64,6 +70,8 @@ void PathGraph::regenerate()
             posZ += randFloat(-dx / 2, dx / 2);
 
             glm::vec3 pos(pos0 + posX, 0.0f, pos0 + posZ);
+            pos.y = scene->getAltitude(pos);
+
             auto newNode = make_shared<PathNode>(pos);
             thisRow[j] = newNode;
 
@@ -152,6 +160,8 @@ void PathGraph::updateStart(glm::vec3 pos)
     // update old start
     if (start != NULL) {
         start->clearNeighbors();
+
+        pos.y = scene->getAltitude(pos);
         start->pos = pos;
     }
     else {
@@ -191,6 +201,8 @@ void PathGraph::updateGoal(glm::vec3 pos)
     // update old goal
     if (goal != NULL) {
         goal->clearNeighbors();
+
+        pos.y = scene->getAltitude(pos);
         goal->pos = pos;
     }
     else {

@@ -6,6 +6,7 @@
 #include "Program.h"
 #include "MatrixStack.h"
 #include "Texture.h"
+#include "Scene.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
@@ -27,8 +28,9 @@ Entity::Entity() :
     pg = make_shared<PathGraph>();
 }
 
-Entity::Entity(glm::vec3 _pos, float sceneEdgeLength, int unitsPerPGNode) :
+Entity::Entity(glm::vec3 _pos, const shared_ptr<Scene> _scene, float sceneEdgeLength, int unitsPerPGNode) :
     pos(_pos),
+    scene(_scene),
     goal(glm::vec3(0.0f)),
     rot(glm::identity<glm::mat4>()),
     //rot(0.0f),
@@ -37,7 +39,7 @@ Entity::Entity(glm::vec3 _pos, float sceneEdgeLength, int unitsPerPGNode) :
     t(0),
     t0(0)
 {
-    pg = make_shared<PathGraph>(sceneEdgeLength, unitsPerPGNode);
+    pg = make_shared<PathGraph>(scene, sceneEdgeLength, unitsPerPGNode);
 }
 
 Entity::~Entity()
@@ -235,6 +237,7 @@ void Entity::update(double _t)
             // update position
             glm::vec3 oldPos = pos;
             pos = G_position * (B*uVec);
+            pos.y = scene->getAltitude(pos);
 
             // update rotation
             if (pos != oldPos) {

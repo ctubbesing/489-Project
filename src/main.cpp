@@ -44,7 +44,7 @@ GLFWwindow *window; // Main application window
 string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
-int TERRAIN_CELLS = 2; // 100;
+int TERRAIN_CELLS = 100; // 100;
 int PG_UNITS_PER_NODE = 13;
 bool flatTerrain = false;
 
@@ -107,7 +107,7 @@ static void char_callback(GLFWwindow *window, unsigned int key)
         case (unsigned)'/':
             testSpot.x = randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2);
             testSpot.z = randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2);
-            cout << "testSpot location:" << endl << "    x = " << testSpot.x << endl << "    z = " << testSpot.z << endl;
+            //cout << "testSpot location:" << endl << "    x = " << testSpot.x << endl << "    z = " << testSpot.z << endl;
 
             testSpot.y = scene->getAltitude(testSpot);
             break;
@@ -402,7 +402,7 @@ static void init()
     }
 
     // initialize entity
-    ent = make_shared<Entity>(glm::vec3(0.0f), TERRAIN_SIZE, PG_UNITS_PER_NODE);
+    ent = make_shared<Entity>(glm::vec3(0.0f), scene, TERRAIN_SIZE, PG_UNITS_PER_NODE);
     //ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
     ent->setSkinProgram(progSkin);
 
@@ -528,10 +528,6 @@ void render()
         glVertex3f(-gridSizeHalf, 0, z);
         glVertex3f(gridSizeHalf, 0, z);
     }
-
-    glColor3f(1, 0, 0);
-    glVertex3f(-7.378f, 0.0f, -39.532f);
-    glVertex3f(-7.378f, 50.0f, -39.532f);
     glEnd();
     progSimple->unbind();
 

@@ -20,6 +20,7 @@ public:
     virtual ~Terrain();
     void init();
     void generateTerrain(bool flat = false);
+    void updatePosNor();
     float getAltitude(float x, float z);
     glm::vec3 getPoint(int x, int z = -1);
     float getSize() { return edgeLength; }

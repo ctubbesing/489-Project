@@ -44,9 +44,9 @@ GLFWwindow *window; // Main application window
 string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
-int TERRAIN_CELLS = 1; // 100;
+int TERRAIN_CELLS = 50; // 100;
 int PG_UNITS_PER_NODE = 13;
-bool flatTerrain = true;
+bool flatTerrain = false;
 
 shared_ptr<Camera> camera = NULL;
 shared_ptr<Program> progSimple = NULL;

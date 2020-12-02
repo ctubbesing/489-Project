@@ -18,8 +18,8 @@ Terrain::Terrain() :
     norBuf.clear();
     //texBuf.clear();
     eleBuf.clear();
-    posBuf.resize(nVerts * 3);
-    norBuf.resize(nVerts * 3);
+    //posBuf.resize(nVerts * 3);
+    //norBuf.resize(nVerts * 3);
 
     generateTerrain(true);
 
@@ -35,8 +35,8 @@ Terrain::Terrain(float d, int n, bool flat) :
     norBuf.clear();
     //texBuf.clear();
     eleBuf.clear();
-    posBuf.resize(nVerts * 3);
-    norBuf.resize(nVerts * 3);
+    //posBuf.resize(nVerts * 3);
+    //norBuf.resize(nVerts * 3);
 
     generateTerrain(flat);
 
@@ -137,9 +137,16 @@ void Terrain::generateTerrain(bool flat)
 
     }
 
+    updatePosNor();
+}
 
+void Terrain::updatePosNor()
+{
+    int rows = edgeCells + 1;
+    int cols = rows;
 
     // update vertex buffers
+    /*
     // position /////////////////////////////// maybe can just do posbuf = memcpy(landMat) ? dont need to tho
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
@@ -225,17 +232,63 @@ void Terrain::generateTerrain(bool flat)
             norBuf[3 * k + 2] = nor[2];
         }
     }
-
-    // elements
+    //*/
+    
+    // position & normal
+    // add triangles to buffers 2 at a time in this order:
+    // 0   2 5
+    // | / / |
+    // |/ /  |
+    // 1 3---4
+    vector<int> i_buf = { 0, 1, 0, 1, 1, 0 };
+    vector<int> j_buf = { 0, 0, 1, 0, 1, 1 };
     for (int i = 0; i < rows - 1; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            int k0 = i * cols + j;
-            int k1 = k0 + cols;
-            // Triangle strip
-            eleBuf.push_back(k0);
-            eleBuf.push_back(k1);
+        for (int j = 0; j < cols - 1; ++j) {
+            // add positions
+            for (int k = 0; k < 6; k++) {
+                glm::vec3 x = landMat[ (i + i_buf[k]) ][ (j + j_buf[k]) ];
+                posBuf.push_back(x[0]);
+                posBuf.push_back(x[1]);
+                posBuf.push_back(x[2]);
+            }
+
+            // add normals
+            glm::vec3 n = glm::normalize(glm::cross(landMat[i + 1][j] - landMat[i][j], landMat[i][j + 1] - landMat[i][j]));
+            for (int k = 0; k < 3; k++) {
+                norBuf.push_back(n[0]);
+                norBuf.push_back(n[1]);
+                norBuf.push_back(n[2]);
+            }
+            n = glm::normalize(glm::cross(landMat[i + 1][j + 1] - landMat[i + 1][j], landMat[i][j + 1] - landMat[i + 1][j + 1]));
+            for (int k = 0; k < 3; k++) {
+                norBuf.push_back(n[0]);
+                norBuf.push_back(n[1]);
+                norBuf.push_back(n[2]);
+            }
         }
     }
+
+    // normal
+
+    // elements
+    for (int i = 0; i < posBuf.size(); i++) {
+        eleBuf.push_back(i);
+    }
+    //for (int i = 0; i < rows - 1; ++i) {
+    //    for (int j = 0; j < cols - 1; ++j) {
+    //        int k0 = i * cols + j;
+    //        int k1 = k0 + cols;
+    //        int k2 = k0 + 1;
+    //        int k4 = k1 + 1;
+    //        // individual triangles (not triangle strip)
+    //        eleBuf.push_back(k0);
+    //        eleBuf.push_back(k1);
+    //        eleBuf.push_back(k2);
+    //        eleBuf.push_back(k1);
+    //        eleBuf.push_back(k4);
+    //        eleBuf.push_back(k2);
+    //    }
+    //}
 }
 
 float Terrain::getAltitude(float x, float z)
@@ -261,6 +314,9 @@ glm::vec3 Terrain::getPoint(int i, int j)
 
 void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
 {
+    int rows = edgeCells + 1;
+    int cols = rows;
+
     // Draw mesh
     //glUniform3fv(p->getUniform("kdFront"), 1, glm::vec3(1.0, 0.0, 0.0).data());
     //glUniform3fv(p->getUniform("kd"), 1, glm::vec3(1.0, 1.0, 0.0));
@@ -301,20 +357,15 @@ void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
     glBindBuffer(GL_ARRAY_BUFFER, norBufID);
     glBufferData(GL_ARRAY_BUFFER, norBuf.size() * sizeof(float), &norBuf[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(h_nor, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
-    int rowCols = edgeCells + 1;
-    for (int i = 0; i < rowCols; ++i) {
-        //float iPct = (float)i / rowCols;
-        //if (i % 2 == 0) {
-        //    glUniform3f(p->getUniform("ka"), iPct / 2, 0.25f, 0.4f);
-        //    glUniform3f(p->getUniform("kd"), iPct, 0.5f, 0.8f);
-        //}
-        //else {
-        //    glUniform3f(p->getUniform("ka"), 0.4, 0.25f, (1.0f - iPct)/2);
-        //    glUniform3f(p->getUniform("kd"), 0.8, 0.5f, 1.0f - iPct);
-        //}
-        glDrawElements(GL_TRIANGLE_STRIP, 2 * rowCols, GL_UNSIGNED_INT, (const void *)(2 * rowCols*i * sizeof(unsigned int)));
-    }
+
+    int count = posBuf.size() / 3; // number of indices to be rendered
+    glDrawArrays(GL_TRIANGLES, 0, count);
+
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
+    //for (int i = 0; i < (2 * rows * cols); ++i) {
+    //    glDrawElements(GL_TRIANGLES, 1, GL_UNSIGNED_INT, (const void *)(6 * i * sizeof(unsigned int)));
+    //}
+
     glDisableVertexAttribArray(h_nor);
     glDisableVertexAttribArray(h_pos);
     glBindBuffer(GL_ARRAY_BUFFER, 0);

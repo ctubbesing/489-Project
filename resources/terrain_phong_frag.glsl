@@ -19,7 +19,7 @@ void main()
 	vec3 ka_;
 	vec3 kd_;
 	vec3 norm_vNor = normalize(vNor_);
-	if (norm_vNor.y < 0.8) {
+	if (norm_vNor.y < 0.5) {
 		ka_ = vec3(0.1f, 0.1f, 0.1f);
 		kd_ = vec3(0.4f, 0.4f, 0.4f);
 	}

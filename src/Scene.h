@@ -21,6 +21,7 @@ public:
     virtual ~Scene();
     void generateScene(bool flat = false);
     float getAltitude(glm::vec3 pos) { return terrain->getAltitude(pos); }
+    bool isObstacle(glm::vec3 pos) { return terrain->isObstacle(pos); }
     const std::shared_ptr<Terrain> getTerrain() { return terrain; }
     const std::vector< std::shared_ptr<Entity> > getEntities() { return entities; }/////////////////////////////////prolly return reference tho
     float getSize() { return terrain->getSize(); }

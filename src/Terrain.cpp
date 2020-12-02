@@ -146,7 +146,7 @@ void Terrain::generateTerrain(bool flat)
             landMat[i][j].x += j * dx;
 
             /////////////////////////////////// temp
-            if (i < rows / 2) landMat[i][j].y += 8.0f;
+            //if (i < rows / 2) landMat[i][j].y += 8.0f;
             /////////////////////////////////// temp
         }
     }
@@ -175,13 +175,40 @@ void Terrain::generateTerrain(bool flat)
                 }
 
                 /////////////////////////////////// temp
-                landMat[i][j].y = randFloat(0.0f, 0.4f);
-                if (i < rows / 4) landMat[i][j].y += 16.0f;
-                int iMid = i - edgeLength / 2;
-                int jMid = j - edgeLength / 2;
-                float dist = 0.5 * sqrt(iMid * iMid + jMid * jMid) - 8.5f;
-                if (j < cols / 3) landMat[i][j].y += dist;
+                //landMat[i][j].y = randFloat(0.0f, 0.4f);
+                //if (i < rows / 4) landMat[i][j].y += 16.0f;
+                //int iMid = i - edgeLength / 2;
+                //int jMid = j - edgeLength / 2;
+                //float dist = 0.5 * sqrt(iMid * iMid + jMid * jMid) - 8.5f;
+                //if (j < cols / 3) landMat[i][j].y += dist;
                 /////////////////////////////////// temp
+
+                // define terrain altitude
+                float iPct = (float)i / rows;
+                float jPct = (float)j / rows;
+                float r1l = 0.4f;
+                float r1h = 0.8f;
+                if (iPct <= 0.2f && jPct <= 0.4f ||
+                    iPct <= 0.8f && iPct > 0.2f && jPct <= 0.6f && jPct > 0.2f ||
+                    iPct <= 0.8f && iPct > 0.5f && jPct <= 0.8f && jPct > 0.2f
+                    ) {
+                    landMat[i][j].y = 10;
+                }
+                else if (
+                    iPct <= 0.4f && jPct > 0.8f
+                    ) {
+                    landMat[i][j].y = 20;
+                }
+                else if (iPct <= 0.2f) {
+                    float a = 10.0f / (r1h - r1l);
+                    float b = 20.0f - r1h * a;
+                    landMat[i][j].y = a * jPct - b;
+                }
+                else if (iPct <= 0.6f && jPct <= 0.2f) {
+                    landMat[i][j].y = -25 * iPct + 15;
+                }
+
+                landMat[i][j].y += randFloat(0.0f, 0.2f);
             }
         }
 
@@ -354,6 +381,17 @@ float Terrain::getAltitude(glm::vec3 pos)
     return y;
 }
 
+bool Terrain::isObstacle(glm::vec3 pos)
+{
+    float a, b;
+    vector<glm::vec3> v = findTriangle(pos, a, b);
+
+    glm::vec3 n = glm::normalize(glm::cross(v[1] - v[0], v[2] - v[0]));
+
+    return (n.y * n.y < 0.2);
+}
+
+///////////////////////////////////////////////////////////////
 glm::vec3 Terrain::getPoint(int i, int j)
 {
     int rows = edgeCells + 1;
@@ -364,6 +402,7 @@ glm::vec3 Terrain::getPoint(int i, int j)
         return landMat[i][j];
     }
 }
+///////////////////////////////////////////////////////////////
 
 void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
 {

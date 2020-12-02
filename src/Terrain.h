@@ -22,6 +22,7 @@ public:
     void generateTerrain(bool flat = false);
     void updatePosNor();
     float getAltitude(glm::vec3 pos);
+    bool isObstacle(glm::vec3 pos);
     glm::vec3 getPoint(int x, int z = -1);
     float getSize() { return edgeLength; }
 

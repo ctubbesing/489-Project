@@ -107,8 +107,6 @@ void Entity::update(double _t)
     t += dt;
     t0 = t1;
 
-    float minDist = 2.0f;
-
     switch (state) {
         case IDLE:
             //cout << "Idle." << endl;
@@ -116,7 +114,10 @@ void Entity::update(double _t)
         case TRAVELING:
             //cout << "Traveling." << endl;
             // switch to idle once goal is reached
-            if (glm::length(pos - goal) < minDist) {
+            glm::vec3 distToGo(pos - goal);
+            distToGo.y = 0.0f;
+            float minDist = 2.0f;
+            if (glm::length(distToGo) < minDist) {
                 //cout << "close to goal; switching to idle" << endl;
                 setPos(goal);
                 state = IDLE;
@@ -237,11 +238,12 @@ void Entity::update(double _t)
             // update position
             glm::vec3 oldPos = pos;
             pos = G_position * (B*uVec);
-            pos.y = scene->getAltitude(pos);
 
             // update rotation
             if (pos != oldPos) {
-                rot = glm::inverse(glm::lookAt(pos, oldPos, glm::vec3(0.0f, 1.0f, 0.0f)));
+                glm::vec3 pos_flat(pos.x, 0.0f, pos.z);
+                glm::vec3 oldPos_flat(oldPos.x, 0.0f, oldPos.z);
+                rot = glm::inverse(glm::lookAt(pos_flat, oldPos_flat, glm::vec3(0.0f, 1.0f, 0.0f)));
             }
 
             break;
@@ -258,6 +260,7 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool dr
     // draw skin
     MV->pushMatrix();
     //MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
+    pos.y = scene->getAltitude(pos);
     MV->translate(pos);
     MV->scale(0.05f);
     MV->multMatrix(rot);

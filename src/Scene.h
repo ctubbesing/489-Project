@@ -20,7 +20,7 @@ public:
     Scene(float d, int n, bool flat = false);
     virtual ~Scene();
     void generateScene(bool flat = false);
-    float getAltitude(float x, float z) { return terrain->getAltitude(x, z); }
+    float getAltitude(glm::vec3 pos) { return terrain->getAltitude(pos); }
     const std::shared_ptr<Terrain> getTerrain() { return terrain; }
     const std::vector< std::shared_ptr<Entity> > getEntities() { return entities; }/////////////////////////////////prolly return reference tho
     float getSize() { return terrain->getSize(); }

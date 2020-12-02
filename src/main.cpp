@@ -44,7 +44,7 @@ GLFWwindow *window; // Main application window
 string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
-int TERRAIN_CELLS = 50; // 100;
+int TERRAIN_CELLS = 2; // 100;
 int PG_UNITS_PER_NODE = 13;
 bool flatTerrain = false;
 
@@ -62,7 +62,8 @@ vector< vector< vector<glm::mat4> > > frames;
 double t, t0;
 
 ///////////////////////////////
-//shared_ptr<Shape> pmShape;
+shared_ptr<Shape> pmShape;
+glm::vec3 testSpot(0.0f);
 //shared_ptr<Shape> eShape;
 //shared_ptr<PathGraph> pg;
 //vector< shared_ptr<PathNode> > pgPath;
@@ -102,6 +103,13 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             //pos = glm::vec3(-6.227f, 0.0f, -40.561f);
             glm::vec3 goal = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
             ent->setGoal(goal);
+            break;
+        case (unsigned)'/':
+            testSpot.x = randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2);
+            testSpot.z = randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2);
+            cout << "testSpot location:" << endl << "    x = " << testSpot.x << endl << "    z = " << testSpot.z << endl;
+
+            testSpot.y = scene->getAltitude(testSpot);
             break;
         //case (unsigned)'f':
         //    pgPath = pg->findPath();
@@ -344,7 +352,8 @@ static void init()
     }
 
     /////////////////////////////////////////////////////////////////////
-    shared_ptr<Shape> pmShape = make_shared<Shape>();
+    pmShape = make_shared<Shape>();
+    //shared_ptr<Shape> pmShape = make_shared<Shape>();
     pmShape->setProgram(progShapes);
     pmShape->loadMesh(DATA_DIR + "marker2.obj");
     pmShape->scale(1.5f);
@@ -367,6 +376,7 @@ static void init()
     //pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 0)));
     //pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 50)));
     //pgPath.push_back(make_shared<PathNode>(glm::vec3(0, 0, 0)));
+
     /////////////////////////////////////////////////////////////////////
 
     // initialize scene
@@ -419,6 +429,10 @@ static void init()
     // initialize time
     glfwSetTime(0.0);
     
+    /////////////////////////////////////////////////////////////////////////////
+    testSpot.y = scene->getAltitude(testSpot);
+    /////////////////////////////////////////////////////////////////////////////
+    
     GLSL::checkError(GET_FILE_LINE);
 }
 
@@ -468,6 +482,8 @@ void render()
     // draw axes
     progSimple->bind();
     glUniformMatrix4fv(progSimple->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    MV->pushMatrix();
+    MV->translate(glm::vec3(0.0f, 10.0f, 0.0f));
     glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
     float len = 2.0f;
     glLineWidth(2);
@@ -483,6 +499,7 @@ void render()
     glVertex3f(0.0f, 0.0f, len);
     glEnd();
     glLineWidth(1);
+    MV->popMatrix();
     progSimple->unbind();
 
     // Draw grid
@@ -511,50 +528,75 @@ void render()
         glVertex3f(-gridSizeHalf, 0, z);
         glVertex3f(gridSizeHalf, 0, z);
     }
+
+    glColor3f(1, 0, 0);
+    glVertex3f(-7.378f, 0.0f, -39.532f);
+    glVertex3f(-7.378f, 50.0f, -39.532f);
     glEnd();
     progSimple->unbind();
 
-    //// do shape at terrain vertices
-    //if (keyToggles[(unsigned)'v']) {
-    //    progShapes->bind();
+    // do shape at terrain vertices
+    if (keyToggles[(unsigned)'v']) {
+        progShapes->bind();
 
-    //    glUniform3f(progShapes->getUniform("kd"), 0.2f, 0.5f, 0.6f);
-    //    glUniform3f(progShapes->getUniform("ka"), 0.02f, 0.05f, 0.06f);
-    //    glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+        glUniform3f(progShapes->getUniform("kd"), 0.2f, 0.5f, 0.6f);
+        glUniform3f(progShapes->getUniform("ka"), 0.02f, 0.05f, 0.06f);
+        glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 
-    //    MV->pushMatrix();
-    //    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-    //    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+        MV->pushMatrix();
+        //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+        //MV->rotate(t, 0.0f, 1.0f, 0.0f);
 
-    //    shared_ptr terrain = scene->getTerrain();
-    //    for (int i = 0; i < TERRAIN_CELLS + 1; i++) {
-    //        for (int j = 0; j < TERRAIN_CELLS + 1; j++) {
-    //            MV->pushMatrix();
-    //            MV->translate(terrain->getPoint(i, j));
-    //            MV->rotate(t, 0.0f, 1.0f, 0.0f);
-    //            MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-    //            glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    //            pmShape->draw();
-    //            MV->popMatrix();
-    //        }
-    //    }
+        shared_ptr terrain = scene->getTerrain();
+        for (int i = 0; i < TERRAIN_CELLS + 1; i++) {
+            for (int j = 0; j < TERRAIN_CELLS + 1; j++) {
+                MV->pushMatrix();
+                MV->translate(terrain->getPoint(i, j));
+                MV->rotate(t, 0.0f, 1.0f, 0.0f);
+                MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+                glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+                pmShape->draw();
+                MV->popMatrix();
+            }
+        }
 
-    //    
-    //    ////////////////////////////////////////////////////////////////
-    //    //MV->pushMatrix();
-    //    //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
-    //    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
-    //    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
-    //    //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    //    //pmShape->draw();
-    //    //MV->popMatrix();
-    //    ////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////
+        //MV->pushMatrix();
+        //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
+        //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+        //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+        //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+        //pmShape->draw();
+        //MV->popMatrix();
+        ////////////////////////////////////////////////////////////////
 
+        MV->popMatrix();
+        progShapes->unbind();
+    }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    progShapes->bind();
 
-    //    MV->popMatrix();
-    //    progShapes->unbind();
-    //}
+    glUniform3f(progShapes->getUniform("kd"), 0.6f, 0.2f, 0.5f);
+    glUniform3f(progShapes->getUniform("ka"), 0.06f, 0.02f, 0.05f);
+    glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+
+    MV->pushMatrix();
+    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+
+    //testSpot.y = scene->getAltitude(testSpot);
+
+    MV->pushMatrix();
+    MV->translate(testSpot);
+    MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    pmShape->draw();
+    MV->popMatrix();
+    MV->popMatrix();
+    progShapes->unbind();
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // draw terrain
     //progTerrain->bind();

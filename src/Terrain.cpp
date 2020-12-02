@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -17,7 +19,7 @@ Terrain::Terrain() :
     posBuf.clear();
     norBuf.clear();
     //texBuf.clear();
-    eleBuf.clear();
+    //eleBuf.clear();
     //posBuf.resize(nVerts * 3);
     //norBuf.resize(nVerts * 3);
 
@@ -34,7 +36,7 @@ Terrain::Terrain(float d, int n, bool flat) :
     posBuf.clear();
     norBuf.clear();
     //texBuf.clear();
-    eleBuf.clear();
+    //eleBuf.clear();
     //posBuf.resize(nVerts * 3);
     //norBuf.resize(nVerts * 3);
 
@@ -57,9 +59,9 @@ void Terrain::init()
     //glBindBuffer(GL_ARRAY_BUFFER, texBufID);
     //glBufferData(GL_ARRAY_BUFFER, texBuf.size() * sizeof(float), &texBuf[0], GL_STATIC_DRAW);
 
-    glGenBuffers(1, &eleBufID);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, eleBuf.size() * sizeof(unsigned int), &eleBuf[0], GL_STATIC_DRAW);
+    //glGenBuffers(1, &eleBufID);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, eleBuf.size() * sizeof(unsigned int), &eleBuf[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -78,9 +80,57 @@ float Terrain::randFloat(float l, float h)
     return (1.0f - r) * l + r * h;
 }
 
+vector<glm::vec3> Terrain::findTriangle(glm::vec3 pos, float &a, float &b)
+{
+    int rows = edgeCells + 1;
+    int cols = rows;
+
+    // find row/col of landMat where point lies
+    float dx = edgeLength / edgeCells;
+    int row0 = floor((pos.z + edgeLength / 2) / dx);
+    int col0 = floor((pos.x + edgeLength / 2) / dx);
+
+    cout << "row0 = " << row0 << endl;
+    cout << "col0 = " << col0 << endl;
+
+    // test the surrounding triangles using barycentric coordinates
+    int i_start = (row0 == 0 ? 0 : -1);
+    int j_start = (col0 == 0 ? 0 : -1);
+    int i_end = (row0 == rows - 1 ? 0 : 1);
+    int j_end = (col0 == cols - 1 ? 0 : 1);
+
+    for (int i = i_start; i < i_end; i++) {
+        for (int j = j_start; j < j_end; j++) {
+            glm::vec3 _v0 = landMat[row0 + i][col0 + j];
+            glm::vec3 _v1 = landMat[row0 + i + 1][col0 + j];
+            glm::vec3 _v2 = landMat[row0 + i][col0 + j + 1];
+            glm::vec3 _v3 = landMat[row0 + i + 1][col0 + j + 1];
+            vector<glm::vec3> v0123 = { _v0, _v1, _v2, _v3 };
+
+            for (int k = 0; k < 2; k++) {
+                glm::vec3 v0 = v0123[k];
+                glm::vec3 v1 = v0123[k + 1];
+                glm::vec3 v2 = v0123[k + 2];
+                float denom = (v1.z - v2.z)*(v0.x - v2.x) + (v2.x - v1.x)*(v0.z - v2.z);
+                a = ((v1.z - v2.z)*(pos.x - v2.x) + (v2.x - v1.x)*(pos.z - v2.z)) / denom;
+                b = ((v2.z - v0.z)*(pos.x - v2.x) + (v0.x - v2.x)*(pos.z - v2.z)) / denom;
+                float c = 1 - a - b;
+
+                if (a >= 0 && a <= 1 && b >= 0 && b <= 1 && c >= 0 && c <= 1) {
+                    // pos is in this triangle
+                    vector<glm::vec3> vec = { v0, v1, v2 };
+                    return vec;
+                }
+            }
+        }
+    }
+    cout << "not supposed to be here :( no triangle found" << endl;
+}
+
 void Terrain::generateTerrain(bool flat)
 {
     landMat.clear();
+    //obstacles.clear();
 
     int rows = edgeCells + 1;
     int cols = rows;
@@ -94,7 +144,7 @@ void Terrain::generateTerrain(bool flat)
             landMat[i][j].x += j * dx;
 
             /////////////////////////////////// temp
-            //if (i < rows / 2) landMat[i][j].y += 8.0f;
+            if (i < rows / 2) landMat[i][j].y += 8.0f;
             /////////////////////////////////// temp
         }
     }
@@ -111,7 +161,7 @@ void Terrain::generateTerrain(bool flat)
                     landMat[i][j].z += randFloat(-dx / 2, dx / 2);
                 }
                 if (j != 0 && j != cols - 1) {
-                    // make sure vertex isn't inside neighboring triangle
+                    // make sure vertex isn't inside neighboring triangle /////////////////////////////////////////// not yet implemented
                     float l = -dx / 2;
                     //if (i > 0) {
                     //    float c = (landMat[i][j].z - landMat[i][j - 1].z) / (landMat[i - 1][j].z - landMat[i][j - 1].z);
@@ -123,7 +173,7 @@ void Terrain::generateTerrain(bool flat)
                 }
 
                 /////////////////////////////////// temp
-                landMat[i][j].y = randFloat(0.0f, 0.4f);
+                //landMat[i][j].y = randFloat(0.0f, 0.4f);
                 if (i < rows / 4) landMat[i][j].y += 16.0f;
                 int iMid = i - edgeLength / 2;
                 int jMid = j - edgeLength / 2;
@@ -269,11 +319,10 @@ void Terrain::updatePosNor()
     }
 
     // normal
-
-    // elements
-    for (int i = 0; i < posBuf.size(); i++) {
-        eleBuf.push_back(i);
-    }
+    //// elements
+    //for (int i = 0; i < posBuf.size(); i++) {
+    //    eleBuf.push_back(i);
+    //}
     //for (int i = 0; i < rows - 1; ++i) {
     //    for (int j = 0; j < cols - 1; ++j) {
     //        int k0 = i * cols + j;
@@ -291,14 +340,16 @@ void Terrain::updatePosNor()
     //}
 }
 
-float Terrain::getAltitude(float x, float z)
+float Terrain::getAltitude(glm::vec3 pos)
 {
-    int xIndex = floor(x + edgeLength / 2); // these aren't correct jsyk
-    int zIndex = floor(z + edgeLength / 2);
+    float a, b, c;
+    vector<glm::vec3> v = findTriangle(pos, a, b);
 
-    float cellWidth = edgeLength / edgeCells;
+    c = 1 - a - b;
 
-    return 0.0f;
+    float y = a * v[0].y + b * v[1].y + c * v[2].y;
+
+    return y;
 }
 
 glm::vec3 Terrain::getPoint(int i, int j)
@@ -318,9 +369,6 @@ void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
     int cols = rows;
 
     // Draw mesh
-    //glUniform3fv(p->getUniform("kdFront"), 1, glm::vec3(1.0, 0.0, 0.0).data());
-    //glUniform3fv(p->getUniform("kd"), 1, glm::vec3(1.0, 1.0, 0.0));
-    //glUniform3f(p->getUniform("kd"), 0.8f, 0.4f, 0.5f);
     glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 
     glm::vec3 grass(0.376f, 0.502f, 0.22f);
@@ -328,30 +376,16 @@ void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
     glUniform3f(prog->getUniform("ka"), grass.x, grass.y, grass.z);
     glUniform3f(prog->getUniform("kd"), grass.x * diffAmt, grass.y * diffAmt, grass.z * diffAmt);
 
-
-    GLSL::checkError(GET_FILE_LINE);
-
     MV->pushMatrix();
-
-    GLSL::checkError(GET_FILE_LINE);
 
     glUniformMatrix4fv(prog->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
 
-    GLSL::checkError(GET_FILE_LINE);
-
     int h_pos = prog->getAttribute("aPos");
     glEnableVertexAttribArray(h_pos);
-
-    GLSL::checkError(GET_FILE_LINE);
-
     glBindBuffer(GL_ARRAY_BUFFER, posBufID);
-
-    GLSL::checkError(GET_FILE_LINE);
-
-    glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);/////////////////////////////////// tryna get this to work with flat shading
-
     glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof(float), &posBuf[0], GL_DYNAMIC_DRAW);
     glVertexAttribPointer(h_pos, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+
     int h_nor = prog->getAttribute("aNor");
     glEnableVertexAttribArray(h_nor);
     glBindBuffer(GL_ARRAY_BUFFER, norBufID);
@@ -361,15 +395,9 @@ void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
     int count = posBuf.size() / 3; // number of indices to be rendered
     glDrawArrays(GL_TRIANGLES, 0, count);
 
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
-    //for (int i = 0; i < (2 * rows * cols); ++i) {
-    //    glDrawElements(GL_TRIANGLES, 1, GL_UNSIGNED_INT, (const void *)(6 * i * sizeof(unsigned int)));
-    //}
-
     glDisableVertexAttribArray(h_nor);
     glDisableVertexAttribArray(h_pos);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     MV->popMatrix();
 
     GLSL::checkError(GET_FILE_LINE);

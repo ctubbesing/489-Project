@@ -92,6 +92,7 @@ private:
     std::shared_ptr<Shape> PmShape;
 
     float randFloat(float l, float h);
+    bool isClearPath(std::shared_ptr<PathNode> a, std::shared_ptr<PathNode> b);
 };
 
 #endif

@@ -44,6 +44,24 @@ float PathGraph::randFloat(float l, float h)
     return (1.0f - r) * l + r * h;
 }
 
+bool PathGraph::isClearPath(shared_ptr<PathNode> a, shared_ptr<PathNode> b)
+{
+    glm::vec3 a2b = b->pos - a->pos;
+    float l = glm::length(a2b);
+
+    int timesToCheck = 100;
+    for (int i = 0; i < timesToCheck; i++) {
+        float w = (float)i / timesToCheck;
+        glm::vec3 p = a->pos + w * a2b;
+
+        if (scene->isObstacle(p)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void PathGraph::regenerate()
 {
     //cout << "Regenerating PathGraph." << endl;
@@ -66,8 +84,9 @@ void PathGraph::regenerate()
             // create new node
             float posX = dx * j;
             float posZ = dx * i;
-            posX += randFloat(-dx / 2, dx / 2);
-            posZ += randFloat(-dx / 2, dx / 2);
+            float randErrMax = dx / 3;
+            posX += randFloat(-randErrMax, randErrMax);
+            posZ += randFloat(-randErrMax, randErrMax);
 
             glm::vec3 pos(pos0 + posX, 0.0f, pos0 + posZ);
             pos.y = scene->getAltitude(pos);
@@ -76,20 +95,45 @@ void PathGraph::regenerate()
             thisRow[j] = newNode;
 
             // link node to neighbors
+            shared_ptr<PathNode> neighbor;
             if (i > 0) {
-                newNode->addNeighbor(nodes[i - 1][j]);
+                neighbor = nodes[i - 1][j];
+                if (isClearPath(newNode, neighbor)) {
+                    newNode->addNeighbor(neighbor);
+                }
+
                 if (j > 0) {
-                    newNode->addNeighbor(nodes[i - 1][j - 1]);
+                    neighbor = nodes[i - 1][j - 1];
+                    if (isClearPath(newNode, neighbor)) {
+                        newNode->addNeighbor(neighbor);
+                    }
                 }
                 if (j < n - 1) {
-                    newNode->addNeighbor(nodes[i - 1][j + 1]);
+                    neighbor = nodes[i - 1][j + 1];
+                    if (isClearPath(newNode, neighbor)) {
+                        newNode->addNeighbor(neighbor);
+                    }
                 }
             }
             if (j > 0) {
-                newNode->addNeighbor(thisRow[j - 1]);
+                neighbor = thisRow[j - 1];
+                if (isClearPath(newNode, neighbor)) {
+                    newNode->addNeighbor(neighbor);
+                }
             }
         }
+
         nodes.push_back(thisRow);
+    }
+
+    // remove nodes that are in obstacles
+    for (auto nodeRow : nodes) {
+        for (auto node : nodeRow) {
+            if (scene->isObstacle(node->pos)) {
+                node->clearNeighbors();
+                node = NULL;
+            }
+        }
     }
 
     // update start and goal links
@@ -178,9 +222,15 @@ void PathGraph::updateStart(glm::vec3 pos)
 
     shared_ptr<PathNode> mainNode = nodes[row][col];
     for (auto node : mainNode->neighbors) {
-        start->addNeighbor(node);
+        //start->addNeighbor(node);
+        if (isClearPath(start, node)) {
+            start->addNeighbor(node);
+        }
     }
-    start->addNeighbor(mainNode);
+    //start->addNeighbor(mainNode);
+    if (isClearPath(start, mainNode)) {
+        start->addNeighbor(mainNode);
+    }
 
     //cout << "Done updating start." << endl;
     //cout << "start:" << endl;
@@ -219,9 +269,15 @@ void PathGraph::updateGoal(glm::vec3 pos)
 
     shared_ptr<PathNode> mainNode = nodes[row][col];
     for (auto node : mainNode->neighbors) {
-        goal->addNeighbor(node);
+        //goal->addNeighbor(node);
+        if (isClearPath(goal, node)) {
+            goal->addNeighbor(node);
+        }
     }
     goal->addNeighbor(mainNode);
+    if (isClearPath(goal, mainNode)) {
+        goal->addNeighbor(mainNode);
+    }
 
     //cout << "Done updating goal." << endl;
     //cout << "start:" << endl;
@@ -332,24 +388,37 @@ vector< glm::vec3 > PathGraph::findPath()
 
         // expand current branch
         for (auto node : currentBranch->path.back()->neighbors) {
-            glm::vec3 dx(goal->pos - node->pos);
-            float h = sqrt(dx.x * dx.x + dx.z * dx.z);///////////////////////////////////////////////////////////////////temp don't need to use sqrt
-            //float h = dx.x * dx.x + dx.z * dx.z;
-            shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
-            pq.push(newBranch);
-            if (doOut)cout << str << str << "goal->pos = (" << goal->pos.x << ", " << goal->pos.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
-            //if (doOut)cout << str << str << "dx = (" << dx.x << ", " << dx.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
-            if (doOut)cout << str << str << "Adding branch to pq." << endl;
-            if (doOut)printBranchData(newBranch, string("        "));
+            // avoid loops in the path
+            bool isVisited = false;
+            for (auto visitedNode : currentBranch->path) {
+                if (node == visitedNode) {
+                    isVisited = true;
+                    break;
+                }
+            }
+
+            if (!isVisited) {
+                glm::vec3 dx(goal->pos - node->pos);
+                float h = sqrt(dx.x * dx.x + dx.z * dx.z);
+                //float h = dx.x * dx.x + dx.z * dx.z;
+                shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
+                pq.push(newBranch);
+                if (doOut)cout << str << str << "goal->pos = (" << goal->pos.x << ", " << goal->pos.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
+                //if (doOut)cout << str << str << "dx = (" << dx.x << ", " << dx.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
+                if (doOut)cout << str << str << "Adding branch to pq." << endl;
+                if (doOut)printBranchData(newBranch, string("        "));
+            }
         }
 
         // go to next branch in pq
-        currentBranch = pq.top();
-        if (doOut)cout << str << "selected next branch to follow:" << endl;
-        if (doOut)printBranchData(currentBranch);
-        pq.pop();
-        if (doOut)cout << str << "^^^ Popped that branch from pq." << endl;
-        if (pq.empty()) {
+        if (!pq.empty()) {
+            currentBranch = pq.top();
+            if (doOut)cout << str << "selected next branch to follow:" << endl;
+            if (doOut)printBranchData(currentBranch);
+            pq.pop();
+            if (doOut)cout << str << "^^^ Popped that branch from pq." << endl;
+        }
+        else {
             if (doOut)cout << str << "!!! pq is empty; exiting while loop." << endl;
             break;
         }

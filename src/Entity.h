@@ -62,7 +62,7 @@ public:
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true, bool drawPath = true);
 
 
-private:
+protected:
     glm::vec3 pos;
     glm::mat4 rot;
     glm::vec3 goal;

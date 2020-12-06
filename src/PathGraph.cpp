@@ -16,7 +16,13 @@
 
 using namespace std;
 
-PathGraph::PathGraph(float _edgeLength, int _unitsPerNode) :
+PathGraph::PathGraph()
+{
+
+}
+
+PathGraph::PathGraph(const shared_ptr<Scene> _scene, float _edgeLength, int _unitsPerNode) :
+    scene(_scene),
     edgeLength(_edgeLength),
     unitsPerNode(_unitsPerNode),
     start(make_shared<PathNode>(glm::vec3(0.0f))),
@@ -36,6 +42,24 @@ float PathGraph::randFloat(float l, float h)
 {
     float r = rand() / (float)RAND_MAX;
     return (1.0f - r) * l + r * h;
+}
+
+bool PathGraph::isClearPath(shared_ptr<PathNode> a, shared_ptr<PathNode> b)
+{
+    glm::vec3 a2b = b->pos - a->pos;
+    float l = glm::length(a2b);
+
+    int timesToCheck = 100;
+    for (int i = 0; i < timesToCheck; i++) {
+        float w = (float)i / timesToCheck;
+        glm::vec3 p = a->pos + w * a2b;
+
+        if (scene->isObstacle(p)) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void PathGraph::regenerate()
@@ -60,28 +84,56 @@ void PathGraph::regenerate()
             // create new node
             float posX = dx * j;
             float posZ = dx * i;
-            posX += randFloat(-dx / 2, dx / 2);
-            posZ += randFloat(-dx / 2, dx / 2);
+            float randErrMax = dx / 3;
+            posX += randFloat(-randErrMax, randErrMax);
+            posZ += randFloat(-randErrMax, randErrMax);
 
             glm::vec3 pos(pos0 + posX, 0.0f, pos0 + posZ);
+            pos.y = scene->getAltitude(pos);
+
             auto newNode = make_shared<PathNode>(pos);
             thisRow[j] = newNode;
 
             // link node to neighbors
+            shared_ptr<PathNode> neighbor;
             if (i > 0) {
-                newNode->addNeighbor(nodes[i - 1][j]);
+                neighbor = nodes[i - 1][j];
+                if (isClearPath(newNode, neighbor)) {
+                    newNode->addNeighbor(neighbor);
+                }
+
                 if (j > 0) {
-                    newNode->addNeighbor(nodes[i - 1][j - 1]);
+                    neighbor = nodes[i - 1][j - 1];
+                    if (isClearPath(newNode, neighbor)) {
+                        newNode->addNeighbor(neighbor);
+                    }
                 }
                 if (j < n - 1) {
-                    newNode->addNeighbor(nodes[i - 1][j + 1]);
+                    neighbor = nodes[i - 1][j + 1];
+                    if (isClearPath(newNode, neighbor)) {
+                        newNode->addNeighbor(neighbor);
+                    }
                 }
             }
             if (j > 0) {
-                newNode->addNeighbor(thisRow[j - 1]);
+                neighbor = thisRow[j - 1];
+                if (isClearPath(newNode, neighbor)) {
+                    newNode->addNeighbor(neighbor);
+                }
             }
         }
+
         nodes.push_back(thisRow);
+    }
+
+    // remove nodes that are in obstacles
+    for (auto nodeRow : nodes) {
+        for (auto node : nodeRow) {
+            if (scene->isObstacle(node->pos)) {
+                node->clearNeighbors();
+                node = NULL;
+            }
+        }
     }
 
     // update start and goal links
@@ -152,6 +204,8 @@ void PathGraph::updateStart(glm::vec3 pos)
     // update old start
     if (start != NULL) {
         start->clearNeighbors();
+
+        pos.y = scene->getAltitude(pos);
         start->pos = pos;
     }
     else {
@@ -168,9 +222,15 @@ void PathGraph::updateStart(glm::vec3 pos)
 
     shared_ptr<PathNode> mainNode = nodes[row][col];
     for (auto node : mainNode->neighbors) {
-        start->addNeighbor(node);
+        //start->addNeighbor(node);
+        if (isClearPath(start, node)) {
+            start->addNeighbor(node);
+        }
     }
-    start->addNeighbor(mainNode);
+    //start->addNeighbor(mainNode);
+    if (isClearPath(start, mainNode)) {
+        start->addNeighbor(mainNode);
+    }
 
     //cout << "Done updating start." << endl;
     //cout << "start:" << endl;
@@ -191,6 +251,8 @@ void PathGraph::updateGoal(glm::vec3 pos)
     // update old goal
     if (goal != NULL) {
         goal->clearNeighbors();
+
+        pos.y = scene->getAltitude(pos);
         goal->pos = pos;
     }
     else {
@@ -207,9 +269,15 @@ void PathGraph::updateGoal(glm::vec3 pos)
 
     shared_ptr<PathNode> mainNode = nodes[row][col];
     for (auto node : mainNode->neighbors) {
-        goal->addNeighbor(node);
+        //goal->addNeighbor(node);
+        if (isClearPath(goal, node)) {
+            goal->addNeighbor(node);
+        }
     }
     goal->addNeighbor(mainNode);
+    if (isClearPath(goal, mainNode)) {
+        goal->addNeighbor(mainNode);
+    }
 
     //cout << "Done updating goal." << endl;
     //cout << "start:" << endl;
@@ -320,24 +388,37 @@ vector< glm::vec3 > PathGraph::findPath()
 
         // expand current branch
         for (auto node : currentBranch->path.back()->neighbors) {
-            glm::vec3 dx(goal->pos - node->pos);
-            float h = sqrt(dx.x * dx.x + dx.z * dx.z);///////////////////////////////////////////////////////////////////temp don't need to use sqrt
-            //float h = dx.x * dx.x + dx.z * dx.z;
-            shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
-            pq.push(newBranch);
-            if (doOut)cout << str << str << "goal->pos = (" << goal->pos.x << ", " << goal->pos.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
-            //if (doOut)cout << str << str << "dx = (" << dx.x << ", " << dx.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
-            if (doOut)cout << str << str << "Adding branch to pq." << endl;
-            if (doOut)printBranchData(newBranch, string("        "));
+            // avoid loops in the path
+            bool isVisited = false;
+            for (auto visitedNode : currentBranch->path) {
+                if (node == visitedNode) {
+                    isVisited = true;
+                    break;
+                }
+            }
+
+            if (!isVisited) {
+                glm::vec3 dx(goal->pos - node->pos);
+                float h = sqrt(dx.x * dx.x + dx.z * dx.z);
+                //float h = dx.x * dx.x + dx.z * dx.z;
+                shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
+                pq.push(newBranch);
+                if (doOut)cout << str << str << "goal->pos = (" << goal->pos.x << ", " << goal->pos.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
+                //if (doOut)cout << str << str << "dx = (" << dx.x << ", " << dx.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
+                if (doOut)cout << str << str << "Adding branch to pq." << endl;
+                if (doOut)printBranchData(newBranch, string("        "));
+            }
         }
 
         // go to next branch in pq
-        currentBranch = pq.top();
-        if (doOut)cout << str << "selected next branch to follow:" << endl;
-        if (doOut)printBranchData(currentBranch);
-        pq.pop();
-        if (doOut)cout << str << "^^^ Popped that branch from pq." << endl;
-        if (pq.empty()) {
+        if (!pq.empty()) {
+            currentBranch = pq.top();
+            if (doOut)cout << str << "selected next branch to follow:" << endl;
+            if (doOut)printBranchData(currentBranch);
+            pq.pop();
+            if (doOut)cout << str << "^^^ Popped that branch from pq." << endl;
+        }
+        else {
             if (doOut)cout << str << "!!! pq is empty; exiting while loop." << endl;
             break;
         }
@@ -366,7 +447,7 @@ vector< glm::vec3 > PathGraph::findPath()
     return finalPath;
 }
 
-void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool drawFullPG)
+void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool drawFullPG, bool drawPath)
 {
     // --- draw normal nodes ---
     if (drawFullPG) {
@@ -442,8 +523,8 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
                     for (auto neighbor : node->neighbors) {
                         glm::vec3 pos1 = neighbor->pos;
 
-                        glVertex3f(pos0.x, pos0.y, pos0.z);
-                        glVertex3f(pos1.x, pos1.y, pos1.z);
+                        glVertex3f(pos0.x, pos0.y + 0.2f, pos0.z);
+                        glVertex3f(pos1.x, pos1.y + 0.2f, pos1.z);
                     }
                 }
             }
@@ -456,7 +537,7 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
 
     // --- draw start & goal ---
     // start
-    if (start != NULL) {
+    if (start != NULL && drawPath) {
         // draw shape
         shapeProg->bind();
         glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
@@ -522,7 +603,7 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
     }
     
     // --- draw provided path ---
-    if (true) {
+    if (drawPath) {
         if (path.size() > 0) {
             simpleProg->bind();
             glLineWidth(15);

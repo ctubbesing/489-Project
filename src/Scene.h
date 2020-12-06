@@ -20,7 +20,8 @@ public:
     Scene(float d, int n, bool flat = false);
     virtual ~Scene();
     void generateScene(bool flat = false);
-    float getAltitude(float x, float z) { return terrain->getAltitude(x, z); }
+    float getAltitude(glm::vec3 pos) { return terrain->getAltitude(pos); }
+    bool isObstacle(glm::vec3 pos) { return terrain->isObstacle(pos); }
     const std::shared_ptr<Terrain> getTerrain() { return terrain; }
     const std::vector< std::shared_ptr<Entity> > getEntities() { return entities; }/////////////////////////////////prolly return reference tho
     float getSize() { return terrain->getSize(); }
@@ -36,7 +37,7 @@ public:
         terrain->setProgram(prog);
     }
 
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, double t, bool drawPG = true);
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, double t, bool drawPG = true, bool drawPath = true);
 
 private:
     std::shared_ptr<Terrain> terrain;

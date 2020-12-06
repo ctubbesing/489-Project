@@ -6,6 +6,7 @@
 #include "Program.h"
 #include "MatrixStack.h"
 #include "Texture.h"
+#include "Scene.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
@@ -21,23 +22,26 @@ Entity::Entity() :
     //rot(0.0f),
     state(IDLE),
     currentFrame(0),
+    speed(7.0f),
     t(0),
     t0(0)
 {
     pg = make_shared<PathGraph>();
 }
 
-Entity::Entity(glm::vec3 _pos, float sceneEdgeLength, int unitsPerPGNode) :
+Entity::Entity(glm::vec3 _pos, const shared_ptr<Scene> _scene, float sceneEdgeLength, int unitsPerPGNode) :
     pos(_pos),
+    scene(_scene),
     goal(glm::vec3(0.0f)),
     rot(glm::identity<glm::mat4>()),
     //rot(0.0f),
     state(IDLE),
     currentFrame(0),
+    speed(7.0f),
     t(0),
     t0(0)
 {
-    pg = make_shared<PathGraph>(sceneEdgeLength, unitsPerPGNode);
+    pg = make_shared<PathGraph>(scene, sceneEdgeLength, unitsPerPGNode);
 }
 
 Entity::~Entity()
@@ -105,8 +109,6 @@ void Entity::update(double _t)
     t += dt;
     t0 = t1;
 
-    float minDist = 2.0f;
-
     switch (state) {
         case IDLE:
             //cout << "Idle." << endl;
@@ -114,7 +116,10 @@ void Entity::update(double _t)
         case TRAVELING:
             //cout << "Traveling." << endl;
             // switch to idle once goal is reached
-            if (glm::length(pos - goal) < minDist) {
+            glm::vec3 distToGo(pos - goal);
+            distToGo.y = 0.0f;
+            float minDist = 1.0f;
+            if (glm::length(distToGo) < minDist) {
                 //cout << "close to goal; switching to idle" << endl;
                 setPos(goal);
                 state = IDLE;
@@ -171,9 +176,9 @@ void Entity::update(double _t)
 
             // convert t to s and implement time control
             // update tMax
-            float v = 7; // units/sec
+            //float v = 7; // units/sec
             float dist = usTable.back().second; // units
-            float tMax = dist / v;
+            float tMax = dist / speed;
             float tNorm = (float)fmod(t, tMax) / tMax;
 
             float sNorm = tNorm;
@@ -238,7 +243,9 @@ void Entity::update(double _t)
 
             // update rotation
             if (pos != oldPos) {
-                rot = glm::inverse(glm::lookAt(pos, oldPos, glm::vec3(0.0f, 1.0f, 0.0f)));
+                glm::vec3 pos_flat(pos.x, 0.0f, pos.z);
+                glm::vec3 oldPos_flat(oldPos.x, 0.0f, oldPos.z);
+                rot = glm::inverse(glm::lookAt(pos_flat, oldPos_flat, glm::vec3(0.0f, 1.0f, 0.0f)));
             }
 
             break;
@@ -250,11 +257,12 @@ void Entity::update(double _t)
     currentFrame = ((int)floor(t*fps)) % frameCount;
 }
 
-void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool drawPG)
+void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool drawPG, bool drawPath)
 {
     // draw skin
     MV->pushMatrix();
     //MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
+    pos.y = scene->getAltitude(pos);
     MV->translate(pos);
     MV->scale(0.05f);
     MV->multMatrix(rot);
@@ -304,5 +312,5 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool dr
     //skin->draw();
     
     //progSkin->unbind();
-    pg->draw(P, MV, path, drawPG);
+    pg->draw(P, MV, path, drawPG, drawPath);
 }

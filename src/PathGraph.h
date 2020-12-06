@@ -60,8 +60,8 @@ struct PathNode : std::enable_shared_from_this<PathNode>
 class PathGraph
 {
 public:
-    //PathGraph();
-    PathGraph(float _edgeLength = 100.0f, int _unitsPerNode = 10);
+    PathGraph();
+    PathGraph(const std::shared_ptr<Scene> _scene, float _edgeLength = 100.0f, int _unitsPerNode = 10);
     virtual ~PathGraph();
     void regenerate();
     void regenerate(glm::vec3 start, glm::vec3 goal);
@@ -72,7 +72,7 @@ public:
     void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
     void setShape(std::shared_ptr<Shape> shape) { PmShape = shape; }
 
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector<glm::vec3> &path = std::vector<glm::vec3>(), bool drawFullPG = true);
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector<glm::vec3> &path = std::vector<glm::vec3>(), bool drawFullPG = true, bool drawPath = true);
 
     ///////////////////////////////////////////////////
     void clear35();
@@ -84,7 +84,7 @@ private:
     std::shared_ptr<PathNode> start;
     std::shared_ptr<PathNode> goal;
     //std::vector< std::shared_ptr<PathNode> > nodes;
-    //std::shared_ptr<Scene> scene;
+    std::shared_ptr<Scene> scene;
     float edgeLength;
     int unitsPerNode;
     std::shared_ptr<Program> simpleProg;
@@ -92,6 +92,7 @@ private:
     std::shared_ptr<Shape> PmShape;
 
     float randFloat(float l, float h);
+    bool isClearPath(std::shared_ptr<PathNode> a, std::shared_ptr<PathNode> b);
 };
 
 #endif

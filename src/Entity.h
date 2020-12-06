@@ -36,7 +36,7 @@ class Entity
 {
 public:
     Entity();
-    Entity(glm::vec3 _pos, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10);
+    Entity(glm::vec3 _pos, const std::shared_ptr<Scene> _scene, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10);
     virtual ~Entity();
     void setSkinProgram(std::shared_ptr<Program> _prog) { progSkin = _prog; }
     //void setPG(std::shared_ptr<PathGraph> _pg) { pg = _pg; }
@@ -54,16 +54,20 @@ public:
     void setPos(glm::vec3 _pos);
     void setGoal(glm::vec3 _goal);
     void setSkinInfo(SkinInfo &s);
+    void speedUp() { speed += 3.0f; }
+    void resetSpeed() { speed = 7.0f; }
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     void update(double _t);
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true);
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true, bool drawPath = true);
 
 
 private:
     glm::vec3 pos;
     glm::mat4 rot;
     glm::vec3 goal;
+
+    float speed;
 
     enum EntityState {
         IDLE,
@@ -87,6 +91,7 @@ private:
 
     std::shared_ptr<Program> progSkin;
 
+    const std::shared_ptr<Scene> scene;
 };
 
 #endif

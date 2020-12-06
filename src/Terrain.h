@@ -20,7 +20,9 @@ public:
     virtual ~Terrain();
     void init();
     void generateTerrain(bool flat = false);
-    float getAltitude(float x, float z);
+    void updatePosNor();
+    float getAltitude(glm::vec3 pos);
+    bool isObstacle(glm::vec3 pos);
     glm::vec3 getPoint(int x, int z = -1);
     float getSize() { return edgeLength; }
 
@@ -28,13 +30,15 @@ public:
 
 private:
     std::vector< std::vector<glm::vec3> > landMat;
+    //std::vector< std::vector<glm::vec3> > obstacles;
     float edgeLength;
     int edgeCells;
 
-    std::vector<unsigned int> eleBuf;
-    unsigned eleBufID;
+    //std::vector<unsigned int> eleBuf;
+    //unsigned eleBufID;
 
     float randFloat(float l, float h);
+    std::vector<glm::vec3> findTriangle(glm::vec3 pos, float &a, float &b);
 };
 
 #endif

@@ -44,9 +44,9 @@ GLFWwindow *window; // Main application window
 string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
-int TERRAIN_CELLS = 1; // 100;
-int PG_UNITS_PER_NODE = 13;
-bool flatTerrain = true;
+int TERRAIN_CELLS = 50; // 100;
+int PG_UNITS_PER_NODE = 20;
+bool flatTerrain = false;
 
 shared_ptr<Camera> camera = NULL;
 shared_ptr<Program> progSimple = NULL;
@@ -60,9 +60,11 @@ vector< shared_ptr<ShapeSkin> > shapes;
 vector<glm::mat4> bindPose;
 vector< vector< vector<glm::mat4> > > frames;
 double t, t0;
+double tMult = 1.0;
 
 ///////////////////////////////
-//shared_ptr<Shape> pmShape;
+shared_ptr<Shape> pmShape;
+glm::vec3 testSpot(0.0f);
 //shared_ptr<Shape> eShape;
 //shared_ptr<PathGraph> pg;
 //vector< shared_ptr<PathNode> > pgPath;
@@ -89,6 +91,7 @@ float randFloat(float l, float h)
 static void char_callback(GLFWwindow *window, unsigned int key)
 {
     keyToggles[key] = !keyToggles[key];
+    bool badPos, badGoal;
     switch (key) {
         case (unsigned)'p':
             ent->regenPG(); /////////////////////////////////////////////////////////////////////// causes crash bad
@@ -96,13 +99,42 @@ static void char_callback(GLFWwindow *window, unsigned int key)
         case (unsigned)'s':
             //pos = glm::vec3(-45.156f, 0.0f, 43.152f);
             glm::vec3 pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+            badPos = true;
+            while (badPos) {
+                pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+                badPos = scene->isObstacle(pos);
+            }
             ent->setPos(pos);
             break;
         case (unsigned)'g':
             //pos = glm::vec3(-6.227f, 0.0f, -40.561f);
-            glm::vec3 goal = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+            badGoal = true;
+            glm::vec3 goal;
+            while (badGoal) {
+                goal = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+                badGoal = scene->isObstacle(goal);
+            }
+            //glm::vec3 goal = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
             ent->setGoal(goal);
             break;
+        case (unsigned)'x':
+            tMult *= 2;
+            //ent->speedUp();
+            break;
+        case (unsigned)'X':
+            tMult /= 2;
+            //ent->resetSpeed();
+            break;
+        //case (unsigned)'/':
+        //    testSpot.x = randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2);
+        //    testSpot.z = randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2);
+        //    //cout << "testSpot location:" << endl << "    x = " << testSpot.x << endl << "    z = " << testSpot.z << endl;
+
+        //    testSpot.y = scene->getAltitude(testSpot);
+        //    if (scene->isObstacle(testSpot)) {
+        //        cout << "Obstacle!!!" << endl;
+        //    }
+        //    break;
         //case (unsigned)'f':
         //    pgPath = pg->findPath();
         //    break;
@@ -344,7 +376,8 @@ static void init()
     }
 
     /////////////////////////////////////////////////////////////////////
-    shared_ptr<Shape> pmShape = make_shared<Shape>();
+    pmShape = make_shared<Shape>();
+    //shared_ptr<Shape> pmShape = make_shared<Shape>();
     pmShape->setProgram(progShapes);
     pmShape->loadMesh(DATA_DIR + "marker2.obj");
     pmShape->scale(1.5f);
@@ -367,6 +400,7 @@ static void init()
     //pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 0)));
     //pgPath.push_back(make_shared<PathNode>(glm::vec3(-50, 0, 50)));
     //pgPath.push_back(make_shared<PathNode>(glm::vec3(0, 0, 0)));
+
     /////////////////////////////////////////////////////////////////////
 
     // initialize scene
@@ -392,7 +426,7 @@ static void init()
     }
 
     // initialize entity
-    ent = make_shared<Entity>(glm::vec3(0.0f), TERRAIN_SIZE, PG_UNITS_PER_NODE);
+    ent = make_shared<Entity>(glm::vec3(0.0f), scene, TERRAIN_SIZE, PG_UNITS_PER_NODE);
     //ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
     ent->setSkinProgram(progSkin);
 
@@ -419,6 +453,10 @@ static void init()
     // initialize time
     glfwSetTime(0.0);
     
+    /////////////////////////////////////////////////////////////////////////////
+    testSpot.y = scene->getAltitude(testSpot);
+    /////////////////////////////////////////////////////////////////////////////
+    
     GLSL::checkError(GET_FILE_LINE);
 }
 
@@ -426,8 +464,8 @@ void render()
 {
     // update time
     double t1 = glfwGetTime();
-    float dt = (t1 - t0);
-    if (keyToggles[(unsigned)' ']) {
+    float dt = tMult * (t1 - t0);
+    if (!keyToggles[(unsigned)' ']) {
         t += dt;
     }
     t0 = t1;
@@ -468,6 +506,8 @@ void render()
     // draw axes
     progSimple->bind();
     glUniformMatrix4fv(progSimple->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+    MV->pushMatrix();
+    //MV->translate(glm::vec3(0.0f, 10.0f, 0.0f));
     glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
     float len = 2.0f;
     glLineWidth(2);
@@ -483,6 +523,7 @@ void render()
     glVertex3f(0.0f, 0.0f, len);
     glEnd();
     glLineWidth(1);
+    MV->popMatrix();
     progSimple->unbind();
 
     // Draw grid
@@ -539,7 +580,6 @@ void render()
     //        }
     //    }
 
-    //    
     //    ////////////////////////////////////////////////////////////////
     //    //MV->pushMatrix();
     //    //MV->translate(glm::vec3(2.5f, 0.0f, 2.5f));
@@ -550,17 +590,39 @@ void render()
     //    //MV->popMatrix();
     //    ////////////////////////////////////////////////////////////////
 
-
-
     //    MV->popMatrix();
     //    progShapes->unbind();
     //}
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //progShapes->bind();
+
+    //glUniform3f(progShapes->getUniform("kd"), 0.6f, 0.2f, 0.5f);
+    //glUniform3f(progShapes->getUniform("ka"), 0.06f, 0.02f, 0.05f);
+    //glUniformMatrix4fv(progShapes->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
+
+    //MV->pushMatrix();
+    ////MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    ////MV->rotate(t, 0.0f, 1.0f, 0.0f);
+
+    ////testSpot.y = scene->getAltitude(testSpot);
+
+    //MV->pushMatrix();
+    //MV->translate(testSpot);
+    //MV->rotate(t, 0.0f, 1.0f, 0.0f);
+    //MV->translate(glm::vec3(-0.75f, 0.0f, -0.75f));
+    //glUniformMatrix4fv(progShapes->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
+    //pmShape->draw();
+    //MV->popMatrix();
+    //MV->popMatrix();
+    //progShapes->unbind();
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // draw terrain
     //progTerrain->bind();
     //glUniformMatrix4fv(progTerrain->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     //MV->pushMatrix();
-    scene->draw(P, MV, t, !keyToggles[(unsigned)'e']);
+    scene->draw(P, MV, t, keyToggles[(unsigned)'e'], keyToggles[(unsigned)'E']);
     //MV->popMatrix();
     //progTerrain->unbind();
     

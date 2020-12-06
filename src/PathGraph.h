@@ -23,8 +23,9 @@ class Program;
 struct AStarBranch;
 ////////////////////////////////////////////////
 
-struct PathNode : std::enable_shared_from_this<PathNode>
+class PathNode : std::enable_shared_from_this<PathNode>
 {
+public:
     PathNode(glm::vec3 pos_) : pos(pos_) {}
     glm::vec3 pos;
     std::vector < std::shared_ptr<PathNode> > neighbors;

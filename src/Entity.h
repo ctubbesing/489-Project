@@ -18,7 +18,8 @@ class Program;
 class Shape;
 class Texture;
 
-struct SkinInfo {
+class SkinInfo {
+public:
     SkinInfo(
         std::vector< std::shared_ptr<ShapeSkin> > &_skins,
         std::vector< std::vector< std::vector<glm::mat4> > > &_frames,
@@ -30,6 +31,14 @@ struct SkinInfo {
     std::vector< std::vector< std::vector<glm::mat4> > > frames;
     std::vector<glm::mat4> bindPose;
     std::map< std::string, std::shared_ptr<Texture> > textureMap;
+};
+
+class DataInput
+{
+public:
+    vector<string> textureData;
+    vector< vector<string> > meshData;
+    vector<string> skeletonData;
 };
 
 class Entity
@@ -76,6 +85,7 @@ protected:
 
     double t, t0;
 
+    void loadSkeletonData(std::string entityType);
     void generatePath();
 
     std::shared_ptr<PathGraph> pg;

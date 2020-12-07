@@ -21,15 +21,24 @@ PathGraph::PathGraph()
 
 }
 
-PathGraph::PathGraph(const shared_ptr<Scene> _scene, int _unitsPerNode) :
+PathGraph::PathGraph(const shared_ptr<Scene> _scene, ProgInfo progs, string DATA_DIR, int _unitsPerNode) :
     scene(_scene),
     edgeLength(_scene->getEdgeLength()),
     unitsPerNode(_unitsPerNode),
     start(make_shared<PathNode>(glm::vec3(0.0f))),
-    goal(make_shared<PathNode>(glm::vec3(0.0f)))
+    goal(make_shared<PathNode>(glm::vec3(0.0f))),
+    simpleProg(progs.progSimple),
+    shapeProg(progs.progShapes)
     //start(NULL),
     //goal(NULL)
 {
+    // load shape from file
+    PmShape = make_shared<Shape>();
+    PmShape->setProgram(progs.progShapes);
+    PmShape->loadMesh(DATA_DIR + "marker2.obj");
+    PmShape->scale(1.5f);
+    PmShape->init();
+
     regenerate();
 }
 

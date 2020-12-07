@@ -18,6 +18,7 @@ class Scene;
 class Shape;
 class MatrixStack;
 class Program;
+class ProgInfo;
 
 ////////////////////////////////////////////////
 struct AStarBranch;
@@ -62,16 +63,16 @@ class PathGraph
 {
 public:
     PathGraph();
-    PathGraph(const std::shared_ptr<Scene> _scene, int _unitsPerNode = 10);
+    PathGraph(const std::shared_ptr<Scene> _scene, ProgInfo progs, std::string DATA_DIR, int _unitsPerNode = 10);
     virtual ~PathGraph();
     void regenerate();
     void regenerate(glm::vec3 start, glm::vec3 goal);
     void updateStart(glm::vec3 pos);
     void updateGoal(glm::vec3 pos);
     std::vector< glm::vec3 > findPath();
-    void setSimpleProgram(std::shared_ptr<Program> p) { simpleProg = p; }
-    void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
-    void setShape(std::shared_ptr<Shape> shape) { PmShape = shape; }
+    //void setSimpleProgram(std::shared_ptr<Program> p) { simpleProg = p; }
+    //void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
+    //void setShape(std::shared_ptr<Shape> shape) { PmShape = shape; }
 
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector<glm::vec3> &path = std::vector<glm::vec3>(), bool drawFullPG = true, bool drawPath = true);
 

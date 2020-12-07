@@ -25,14 +25,11 @@ Scene::~Scene()
 
 void Scene::init()
 {
-    // create single BigVegas instance for scene
-    shared_ptr<Entity> initialVegas = make_shared<Entity>(glm::vec3(0.0f), shared_from_this(), edgeLength, unitsPerPGNode, DATA_DIR);
-    entities.push_back(initialVegas);
+    ProgInfo progs(progSimple, progShapes, progSkin);
 
-    for (auto entity : entities) {
-        entity->setSkinProgram(progSkin);
-        //entity->init();
-    }
+    // create single BigVegas instance for scene
+    shared_ptr<Entity> initialVegas = make_shared<Entity>(string("BigVegas"), glm::vec3(0.0f), shared_from_this(), progs, DATA_DIR);
+    entities.push_back(initialVegas);
 }
 
 void Scene::generateScene(bool flat)

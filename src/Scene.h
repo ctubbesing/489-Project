@@ -13,6 +13,18 @@ class Entity;
 class MatrixStack;
 class Program;
 
+class ProgInfo
+{
+public:
+    ProgInfo(std::shared_ptr<Program> _simple, std::shared_ptr<Program> _shapes, std::shared_ptr<Program> _skin) :
+        progSimple(_simple),
+        progShapes(_shapes),
+        progSkin(_skin) {}
+    std::shared_ptr<Program> progSimple;
+    std::shared_ptr<Program> progShapes;
+    std::shared_ptr<Program> progSkin;
+};
+
 class Scene : std::enable_shared_from_this<Scene>
 {
 public:

@@ -23,6 +23,10 @@ BigVegas::BigVegas(
     Entity(_pos, _scene, _progSkin, sceneEdgeLength, unitsPerPGNode)
 {
     // load data from input file
+    ///////////// !!! in input-file-method branch, this input file is what is used to customize which skin, skeleton,
+    /////////////     animation, etc files are read into the given Entity. The method done in the other branch is to
+    /////////////     create a child of Entity (e.g. BigVegas, Monster, Soldier) and hard-code the filenames into its
+    /////////////     constructor. tbh idk which is the better way to do it
     DataInput dataInput;
     dataInput.DATA_DIR = DATA_DIR;
     loadDataInputFile(dataInput);

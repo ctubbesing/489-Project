@@ -21,7 +21,6 @@ Entity::Entity() :
     pos(glm::vec3(0.0f)),
     goal(glm::vec3(0.0f)),
     rot(glm::identity<glm::mat4>()),
-    //rot(0.0f),
     state(IDLE),
     currentFrame(0),
     t(0),
@@ -35,7 +34,6 @@ Entity::Entity(
     glm::vec3 _pos,
     const shared_ptr<Scene> _scene,
     ProgInfo progs,
-    //shared_ptr<Program> _progSkin,
     string DATA_DIR
 ) :
     pos(_pos),
@@ -56,8 +54,6 @@ Entity::Entity(
     dataInput.entityType = ENTITY_TYPE;
     dataInput.DATA_DIR = DATA_DIR;
     loadDataInputFile(dataInput);
-
-    //init(dataInput);
 
     // Create skin shapes
     for (const auto &mesh : dataInput.meshData) {
@@ -89,10 +85,6 @@ Entity::Entity(
         textureKd->setUnit(unit); // Bind to unit 1
         textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
     }
-
-    //pg->setSimpleProgram(simpleProg);
-    //pg->setShapeProgram(shapeProg);
-    //ent->setPGShape(pmShape);
 }
 
 Entity::Entity(const Entity &ent) :
@@ -235,7 +227,6 @@ void Entity::loadSkeletonData(const DataInput &dataInput)
                 bindPoseLoaded = true;
             }
             else { // load frame data
-                //frames[i].push_back(vector<glm::mat4>());
                 animation.push_back(vector<glm::mat4>());
 
                 for (int bone = 0; bone < boneCount; bone++) {
@@ -252,7 +243,6 @@ void Entity::loadSkeletonData(const DataInput &dataInput)
                     glm::mat4 E = glm::mat4_cast(q);
                     E[3] = glm::vec4(v, 1.0f);
 
-                    //frames[i][currentFrame].push_back(E);
                     animation[currentFrame].push_back(E);
                 }
 
@@ -300,19 +290,6 @@ void Entity::setGoal(glm::vec3 _goal)
     generatePath();
 }
 
-//void Entity::regenPG(int unitsPerNode)
-//{
-//    pg
-//}
-
-//void Entity::setSkinInfo(SkinInfo &s)
-//{
-//    skins = s.skins;
-//    frames = s.frames;
-//    bindPose = s.bindPose;
-//    textureMap = s.textureMap;
-//}
-
 float arcLength(float u_a, float u_b, glm::mat4 &B, glm::mat4 &G) {
     glm::vec4 uVec_a(1.0f, u_a, u_a*u_a, u_a*u_a*u_a);
     glm::vec4 uVec_b(1.0f, u_b, u_b*u_b, u_b*u_b*u_b);
@@ -334,16 +311,14 @@ void Entity::update(double _t)
     // update entity based on current state
     switch (state) {
         case IDLE:
-            //cout << "Idle." << endl;
             break;
+
         case TRAVELING:
-            //cout << "Traveling." << endl;
             // switch to idle once goal is reached
             glm::vec3 distToGo(pos - goal);
             distToGo.y = 0.0f;
             float minDist = 1.0f;
             if (glm::length(distToGo) < minDist) {
-                //cout << "close to goal; switching to idle" << endl;
                 setPos(goal);
                 state = IDLE;
                 break;
@@ -353,7 +328,7 @@ void Entity::update(double _t)
                 break;
             }
 
-            /* -- calculate location along path -- */
+            // calculate location along path
             // define Catmull-Rom B matrix
             glm::mat4 B;
             B[0] = glm::vec4(0.0f, 2.0f, 0.0f, 0.0f);
@@ -375,11 +350,6 @@ void Entity::update(double _t)
                 for (int i = 0; i < pathSegments; i++) {
                     // calculate G for this curve
                     glm::mat4 G;
-                    //G[0] = glm::vec4(keyframes[i], 0.0f);
-                    //G[1] = glm::vec4(keyframes[(i + 1) % numCurves], 0.0f);
-                    //G[2] = glm::vec4(keyframes[(i + 2) % numCurves], 0.0f);
-                    //G[3] = glm::vec4(keyframes[(i + 3) % numCurves], 0.0f);
-
                     G[0] = glm::vec4(path[max(i - 1, 0)], 0.0f);
                     G[1] = glm::vec4(path[i], 0.0f);
                     G[2] = glm::vec4(path[min(i + 1, pathSegments - 1)], 0.0f);
@@ -398,25 +368,11 @@ void Entity::update(double _t)
 
             // convert t to s and implement time control
             // update tMax
-            //float v = 7; // units/sec
             float dist = usTable.back().second; // units
             float tMax = dist / speed;
             float tNorm = (float)fmod(t, tMax) / tMax;
 
             float sNorm = tNorm;
-            //float sNorm;
-            //switch (keyPresses[(unsigned)'s'] % 3) {
-            //case 0: // default - normal time
-            //    sNorm = tNorm;
-            //    break;
-            //case 1: // provided example - s = -2t^3 + 3t^2
-            //    sNorm = -2 * (tNorm*tNorm*tNorm) + 3 * (tNorm*tNorm);
-            //    break;
-            //case 2: // custom example - sin function
-            //    sNorm = (sin(t) + 1.5f) / 1.5f;
-            //    break;
-            //}
-
             float sMax = usTable.back().second;
             float s = sMax * sNorm;
 
@@ -440,9 +396,7 @@ void Entity::update(double _t)
             float u0 = (n == 0 ? 0.0f : usTable[n - 1].first);
             float u = u0 + alpha * (u1 - u0);
 
-            //float u = (float)fmod(t, pathSegments);
-
-            /* -- draw moving entity -- */
+            // determine position and rotation
             int u_int = (int)floor(u);
             float u_frac = u - u_int;
 
@@ -454,10 +408,6 @@ void Entity::update(double _t)
             G_position[1] = glm::vec4(path[u_int], 0.0f);
             G_position[2] = glm::vec4(path[min(u_int + 1, pathSegments - 1)], 0.0f);
             G_position[3] = glm::vec4(path[min(u_int + 2, pathSegments - 1)], 0.0f);
-            //G_position[0] = glm::vec4(path[u_int], 0.0f);
-            //G_position[1] = glm::vec4(path[(u_int + 1) % pathSegments], 0.0f);
-            //G_position[2] = glm::vec4(path[(u_int + 2) % pathSegments], 0.0f);
-            //G_position[3] = glm::vec4(path[(u_int + 3) % pathSegments], 0.0f);
 
             // update position
             glm::vec3 oldPos = pos;
@@ -483,11 +433,9 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool is
 {
     // draw skin
     MV->pushMatrix();
-    //MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
     pos.y = scene->getAltitude(pos);
     MV->translate(pos);
     MV->scale((isSelected ? 0.06f : 0.05f));
-    //MV->scale(0.05f);
     MV->multMatrix(rot);
 
     for (const auto &shape : skins) {
@@ -511,29 +459,6 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool is
 
     MV->popMatrix();
 
-
-
-
-
-
-    //progSkin->bind();
-
-    //glUniform3f(progSkin->getUniform("kd"), 0.2f, 0.5f, 0.6f);
-    //glUniform3f(progSkin->getUniform("ka"), 0.02f, 0.05f, 0.06f);
-    //glUniformMatrix4fv(progSkin->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
-
-    //MV->pushMatrix();
-
-    //MV->translate(pos);
-    //MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
-    //MV->translate(glm::vec3(0.0f, 1.5f, 0.0f)); // shape offset prolly 0 anyways
-    //glUniformMatrix4fv(progSkin->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    //skin->draw();
-
-    //MV->popMatrix();
-
-    //skin->draw();
-    
-    //progSkin->unbind();
+    // draw PathGraph
     pg->draw(P, MV, path, isSelected, drawPG, drawPath);
 }

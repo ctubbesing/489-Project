@@ -76,43 +76,15 @@ void Shape::loadObj(const string &filename, vector<float> &pos, vector<float> &n
     cout << "texBuf size: " << texBuf.size() << endl;
 }
 
-//*/
 void Shape::loadMesh(const string &meshName)
 {
     // Load geometry
-    //meshFilename = meshName;
-    //loadObj(meshName, posBuf, norBuf, texBuf, false);
     loadObj(meshName, posBuf, norBuf, texBuf);
 }
-//*/
-
 
 void Shape::init()
 {
-    /*/
     // Send the position array to the GPU
-    glGenBuffers(1, &posBufID);
-    glBindBuffer(GL_ARRAY_BUFFER, posBufID);
-    glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof(float), &posBuf[0], GL_STATIC_DRAW);
-
-    // Send the normal array to the GPU
-    glGenBuffers(1, &norBufID);
-    glBindBuffer(GL_ARRAY_BUFFER, norBufID);
-    glBufferData(GL_ARRAY_BUFFER, norBuf.size() * sizeof(float), &norBuf[0], GL_STATIC_DRAW);
-
-    // Send the texcoord array to the GPU
-    glGenBuffers(1, &texBufID);
-    glBindBuffer(GL_ARRAY_BUFFER, texBufID);
-    glBufferData(GL_ARRAY_BUFFER, texBuf.size() * sizeof(float), &texBuf[0], GL_STATIC_DRAW);
-
-    // Unbind the arrays
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    GLSL::checkError(GET_FILE_LINE);
-    //*/
-
-    //*/ //A1
-        // Send the position array to the GPU
     glGenBuffers(1, &posBufID);
     glBindBuffer(GL_ARRAY_BUFFER, posBufID);
     glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof(float), &posBuf[0], GL_STATIC_DRAW);
@@ -135,69 +107,9 @@ void Shape::init()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     GLSL::checkError(GET_FILE_LINE);
-    //*/
 }
 
-/*/
 void Shape::draw() const
-{
-    assert(prog);
-    ////////////////////////////////////////
-    GLSL::checkError(GET_FILE_LINE);
-    ////////////////////////////////////////
-
-
-    int h_pos = prog->getAttribute("aPos");
-    ////////////////////////////////////////
-    GLSL::checkError(GET_FILE_LINE);
-    ////////////////////////////////////////
-
-
-
-    glEnableVertexAttribArray(h_pos);
-    ////////////////////////////////////////
-    GLSL::checkError(GET_FILE_LINE);
-    ////////////////////////////////////////
-
-    glBindBuffer(GL_ARRAY_BUFFER, posBufID);
-    glVertexAttribPointer(h_pos, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
-
-    ////////////////////////////////////////
-    GLSL::checkError(GET_FILE_LINE);
-    ////////////////////////////////////////
-
-    int h_nor = prog->getAttribute("aNor");
-    glEnableVertexAttribArray(h_nor);
-    glBindBuffer(GL_ARRAY_BUFFER, norBufID);
-    glVertexAttribPointer(h_nor, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
-
-    ////////////////////////////////////////
-    GLSL::checkError(GET_FILE_LINE);
-    ////////////////////////////////////////
-
-    int h_tex = prog->getAttribute("aTex");
-    glEnableVertexAttribArray(h_tex);
-    glBindBuffer(GL_ARRAY_BUFFER, texBufID);
-    glVertexAttribPointer(h_tex, 2, GL_FLOAT, GL_FALSE, 0, (const void *)0);
-
-    ////////////////////////////////////////
-    GLSL::checkError(GET_FILE_LINE);
-    ////////////////////////////////////////
-
-    // Draw
-    int count = posBuf.size() / 3; // number of indices to be rendered
-    glDrawArrays(GL_TRIANGLES, 0, count);
-
-    glDisableVertexAttribArray(h_tex);
-    glDisableVertexAttribArray(h_nor);
-    glDisableVertexAttribArray(h_pos);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    GLSL::checkError(GET_FILE_LINE);
-}
-//*/
-
-void Shape::draw(/*const shared_ptr<Program> prog*/) const
 {
     // Bind position buffer
     int h_pos = prog->getAttribute("aPos");

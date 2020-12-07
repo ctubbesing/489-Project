@@ -9,8 +9,6 @@
 #include <glm/glm.hpp>
 
 #include "PathGraph.h"
-//#include "ShapeSkin.h"
-//#include "MatrixStack.h"
 
 class MatrixStack;
 class ShapeSkin;
@@ -18,21 +16,6 @@ class Program;
 class Shape;
 class Texture;
 class ProgInfo;
-
-//class SkinInfo {
-//public:
-//    SkinInfo(
-//        std::vector< std::shared_ptr<ShapeSkin> > &_skins,
-//        std::vector< std::vector< std::vector<glm::mat4> > > &_frames,
-//        std::vector<glm::mat4> &_bindPose,
-//        std::map< std::string, std::shared_ptr<Texture> > &_textureMap
-//    ) : skins(_skins), frames(_frames), bindPose(_bindPose), textureMap(_textureMap) {}
-////
-//    std::vector< std::shared_ptr<ShapeSkin> > skins;
-//    std::vector< std::vector< std::vector<glm::mat4> > > frames;
-//    std::vector<glm::mat4> bindPose;
-//    std::map< std::string, std::shared_ptr<Texture> > textureMap;
-//};
 
 struct DataInput
 {
@@ -52,12 +35,11 @@ public:
         glm::vec3 _pos,
         const std::shared_ptr<Scene> _scene,
         ProgInfo progs,
-        //std::shared_ptr<Program> _progSkin,
         std::string DATA_DIR = ""
     );
     Entity(const Entity &ent);
     virtual ~Entity();
-    //void setProgs(ProgInfo progs);
+
     void regenPG();
 
     void setPos(glm::vec3 _pos);
@@ -83,7 +65,6 @@ protected:
 
     void loadDataInputFile(DataInput &dataInput);
     void loadSkeletonData(const DataInput &dataInput);
-    //void init(const DataInput &dataInput);
     void generatePath();
 
     std::shared_ptr<PathGraph> pg;

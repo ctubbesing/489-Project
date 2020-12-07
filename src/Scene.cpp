@@ -1,7 +1,6 @@
 #include "Scene.h"
 #include "Terrain.h"
 #include "Entity.h"
-#include "BigVegas.h"
 #include "Program.h"
 
 using namespace std;
@@ -66,6 +65,7 @@ shared_ptr<Entity> Scene::addEntity()
 
 shared_ptr<Entity> Scene::deleteEntity()
 {
+    // delete selected entity unless it's the last one
     if (entities.size() > 1) {
         entities.erase(entities.begin() + selectedEnt);
 
@@ -82,12 +82,15 @@ void Scene::setProgTerrain(shared_ptr<Program> prog)
 
 void Scene::draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, double t, bool drawPG, bool drawPath)
 {
+    // draw terrain
     progTerrain->bind();
     terrain->draw(P, MV);
     progTerrain->unbind();
 
+    // draw entities
     for (auto entity : entities) {
         entity->update(t);
+
         if (entity == entities[selectedEnt]) {
             entity->draw(P, MV, true, drawPG, drawPath);
         }

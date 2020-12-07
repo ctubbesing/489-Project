@@ -15,13 +15,9 @@ Terrain::Terrain() :
     edgeLength(24.0f),
     edgeCells(24)
 {
-    int nVerts = (edgeCells + 1)*(edgeCells + 1);///////////////////////////////////////////////// just the surface for now, not the side walls
+    int nVerts = (edgeCells + 1)*(edgeCells + 1);
     posBuf.clear();
     norBuf.clear();
-    //texBuf.clear();
-    //eleBuf.clear();
-    //posBuf.resize(nVerts * 3);
-    //norBuf.resize(nVerts * 3);
 
     generateTerrain(true);
 
@@ -32,13 +28,9 @@ Terrain::Terrain(float _edgeLength, int _edgeCells, bool flat) :
     edgeLength(_edgeLength),
     edgeCells(_edgeCells)
 {
-    int nVerts = (edgeCells + 1)*(edgeCells + 1);///////////////////////////////////////////////// just the surface for now, not the side walls
+    int nVerts = (edgeCells + 1)*(edgeCells + 1);
     posBuf.clear();
     norBuf.clear();
-    //texBuf.clear();
-    //eleBuf.clear();
-    //posBuf.resize(nVerts * 3);
-    //norBuf.resize(nVerts * 3);
 
     generateTerrain(flat);
 
@@ -54,14 +46,6 @@ void Terrain::init()
     glGenBuffers(1, &norBufID);
     glBindBuffer(GL_ARRAY_BUFFER, norBufID);
     glBufferData(GL_ARRAY_BUFFER, norBuf.size() * sizeof(float), &norBuf[0], GL_DYNAMIC_DRAW);
-
-    //glGenBuffers(1, &texBufID);
-    //glBindBuffer(GL_ARRAY_BUFFER, texBufID);
-    //glBufferData(GL_ARRAY_BUFFER, texBuf.size() * sizeof(float), &texBuf[0], GL_STATIC_DRAW);
-
-    //glGenBuffers(1, &eleBufID);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eleBufID);
-    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, eleBuf.size() * sizeof(unsigned int), &eleBuf[0], GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -87,13 +71,8 @@ vector<glm::vec3> Terrain::findTriangle(glm::vec3 pos, float &a, float &b)
 
     // find row/col of landMat where point lies
     float dx = edgeLength / edgeCells;
-    //int row0 = floor((pos.z + dx / 2) / dx);
-    //int col0 = floor((pos.x + dx / 2) / dx);
     int row0 = floor((pos.z + (edgeLength + dx) / 2) / dx);
     int col0 = floor((pos.x + (edgeLength + dx) / 2) / dx);
-
-    //cout << "row0 = " << row0 << endl;
-    //cout << "col0 = " << col0 << endl;
 
     // test the surrounding triangles using barycentric coordinates
     int i_start = (row0 == 0 ? 0 : -1);
@@ -126,13 +105,14 @@ vector<glm::vec3> Terrain::findTriangle(glm::vec3 pos, float &a, float &b)
             }
         }
     }
+
+    // should never reach this spot
     cout << "not supposed to be here :( no triangle found" << endl;
 }
 
 void Terrain::generateTerrain(bool flat)
 {
     landMat.clear();
-    //obstacles.clear();
 
     int rows = edgeCells + 1;
     int cols = rows;
@@ -144,44 +124,20 @@ void Terrain::generateTerrain(bool flat)
         for (int j = 0; j < cols; j++) {
             landMat[i][j].z += i * dx;
             landMat[i][j].x += j * dx;
-
-            /////////////////////////////////// temp
-            //if (i < rows / 2) landMat[i][j].y += 8.0f;
-            /////////////////////////////////// temp
         }
     }
 
     // generate random terrain
     if (!flat) {
         // randomize x & z
-
-        //rows = 15;////////////////////////////////////////////////////////////////////////////////////////////////
-
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 if (i != 0 && i != rows - 1) {
                     landMat[i][j].z += randFloat(-dx / 2, dx / 2);
                 }
                 if (j != 0 && j != cols - 1) {
-                    // make sure vertex isn't inside neighboring triangle /////////////////////////////////////////// not yet implemented
-                    float l = -dx / 2;
-                    //if (i > 0) {
-                    //    float c = (landMat[i][j].z - landMat[i][j - 1].z) / (landMat[i - 1][j].z - landMat[i][j - 1].z);
-                    //    float xmin = c * (landMat[i - 1][j].x - landMat[i][j - 1].x) + landMat[i][j - 1].x;
-                    //    l = ((landMat[i][j].x - dx / 2) >= xmin ? (-dx / 2) : (landMat[i][j].x - xmin));
-                    //}
-
-                    landMat[i][j].x += randFloat(l, dx / 2);
+                    landMat[i][j].x += randFloat(-dx / 2, dx / 2);
                 }
-
-                /////////////////////////////////// temp
-                //landMat[i][j].y = randFloat(0.0f, 0.4f);
-                //if (i < rows / 4) landMat[i][j].y += 16.0f;
-                //int iMid = i - edgeLength / 2;
-                //int jMid = j - edgeLength / 2;
-                //float dist = 0.5 * sqrt(iMid * iMid + jMid * jMid) - 8.5f;
-                //if (j < cols / 3) landMat[i][j].y += dist;
-                /////////////////////////////////// temp
 
                 // define terrain altitude
                 float iPct = (float)i / rows;
@@ -208,12 +164,10 @@ void Terrain::generateTerrain(bool flat)
                     landMat[i][j].y = -25 * iPct + 15;
                 }
 
+                // add small random deviations for rough feel
                 landMat[i][j].y += randFloat(0.0f, 0.2f);
             }
         }
-
-        // do y values...
-
     }
 
     updatePosNor();
@@ -224,95 +178,6 @@ void Terrain::updatePosNor()
     int rows = edgeCells + 1;
     int cols = rows;
 
-    // update vertex buffers
-    /*
-    // position /////////////////////////////// maybe can just do posbuf = memcpy(landMat) ? dont need to tho
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            int k = i * cols + j;
-            glm::vec3 x = landMat[i][j];
-            posBuf[3 * k + 0] = x[0];
-            posBuf[3 * k + 1] = x[1];
-            posBuf[3 * k + 2] = x[2];
-        }
-    }
-
-    // normal
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            // Each vertex has six neighbors
-            //
-            //      v1--d1
-            //     /|  /|
-			//    / | / |
-            //  u0--XX--u1
-            //  |  /|  /
-            //  | / | /
-            //  d0--v0
-            //
-            // Use these six triangles to compute the normal
-            int k = i * cols + j;
-            glm::vec3 x = landMat[i][j];
-            glm::vec3 xu0, xu1, xv0, xv1, xd0, xd1, c;
-            glm::vec3 nor(0.0, 0.0, 0.0);
-            //int count = 0;
-            // Top-right lower triangle
-            if (i != 0 && j != cols - 1) {
-                xu1 = landMat[i][j + 1];
-                xd1 = landMat[i - 1][j + 1];
-                c = cross(xu1 - x, xd1 - x);
-                nor += normalize(c);
-                //++count;
-            }
-            // Top-right upper triangle
-            if (i != 0 && j != cols - 1) {
-                xd1 = landMat[i - 1][j + 1];
-                xv1 = landMat[i - 1][j];
-                c = cross(xd1 - x, xv1 - x);
-                nor += normalize(c);
-                //++count;
-            }
-            // Top-left triangle
-            if (i != 0 && j != 0) {
-                xv1 = landMat[i - 1][j];
-                xu0 = landMat[i][j - 1];
-                c = cross(xv1 - x, xu0 - x);
-                nor += normalize(c);
-                //++count;
-            }
-            // Bottom-left upper triangle
-            if (i != rows - 1 && j != 0) {
-                xu0 = landMat[i][j - 1];
-                xd0 = landMat[i + 1][j - 1];
-                c = cross(xu0 - x, xd0 - x);
-                nor += normalize(c);
-                //++count;
-            }
-            // Bottom-left lower triangle
-            if (i != rows - 1 && j != 0) {
-                xd0 = landMat[i + 1][j - 1];
-                xv0 = landMat[i + 1][j];
-                c = cross(xd0 - x, xv0 - x);
-                nor += normalize(c);
-                //++count;
-            }
-            // Bottom-right triangle
-            if (i != rows - 1 && j != cols - 1) {
-                xv0 = landMat[i + 1][j];
-                xu1 = landMat[i][j + 1];
-                c = cross(xv0 - x, xu1 - x);
-                nor += normalize(c);
-                //++count;
-            }
-            //nor /= count;
-            nor = normalize(nor);
-            norBuf[3 * k + 0] = nor[0];
-            norBuf[3 * k + 1] = nor[1];
-            norBuf[3 * k + 2] = nor[2];
-        }
-    }
-    //*/
-    
     // position & normal
     // add triangles to buffers 2 at a time in this order:
     // 0   2 5
@@ -346,27 +211,6 @@ void Terrain::updatePosNor()
             }
         }
     }
-
-    // normal
-    //// elements
-    //for (int i = 0; i < posBuf.size(); i++) {
-    //    eleBuf.push_back(i);
-    //}
-    //for (int i = 0; i < rows - 1; ++i) {
-    //    for (int j = 0; j < cols - 1; ++j) {
-    //        int k0 = i * cols + j;
-    //        int k1 = k0 + cols;
-    //        int k2 = k0 + 1;
-    //        int k4 = k1 + 1;
-    //        // individual triangles (not triangle strip)
-    //        eleBuf.push_back(k0);
-    //        eleBuf.push_back(k1);
-    //        eleBuf.push_back(k2);
-    //        eleBuf.push_back(k1);
-    //        eleBuf.push_back(k4);
-    //        eleBuf.push_back(k2);
-    //    }
-    //}
 }
 
 float Terrain::getAltitude(glm::vec3 pos)
@@ -390,19 +234,6 @@ bool Terrain::isObstacle(glm::vec3 pos)
 
     return (n.y * n.y < 0.2);
 }
-
-///////////////////////////////////////////////////////////////
-glm::vec3 Terrain::getPoint(int i, int j)
-{
-    int rows = edgeCells + 1;
-    if (j == -1) {
-        return landMat[i % rows][i / rows];
-    }
-    else {
-        return landMat[i][j];
-    }
-}
-///////////////////////////////////////////////////////////////
 
 void Terrain::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV)
 {

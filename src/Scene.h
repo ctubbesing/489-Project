@@ -43,7 +43,6 @@ public:
     float getEdgeLength() { return terrain->getEdgeLength(); }
     
     std::shared_ptr<Entity> addEntity();
-    //std::shared_ptr<Entity> addEntity(std::shared_ptr<Entity> ent) { entities.push_back(ent); }
     std::shared_ptr<Entity> deleteEntity();
     std::shared_ptr<Entity> selectEntity();
 

@@ -7,22 +7,11 @@
 
 #include <glm/glm.hpp>
 
-//#include "Shape.h"
-
-//#include "PathMarker.h"
-//#include "Scene.h"
-//#include "Shape.h"
-//#include "MatrixStack.h"
-
 class Scene;
 class Shape;
 class MatrixStack;
 class Program;
 class ProgInfo;
-
-////////////////////////////////////////////////
-struct AStarBranch;
-////////////////////////////////////////////////
 
 class PathNode : public std::enable_shared_from_this<PathNode>
 {
@@ -59,6 +48,35 @@ public:
     }
 };
 
+// struct for A* to track branches
+class AStarBranch
+{
+public:
+    AStarBranch(std::shared_ptr<PathNode> start) : g(0), f(0)
+    {
+        path.push_back(start);
+    }
+
+    AStarBranch(std::shared_ptr<AStarBranch> oldBranch, std::shared_ptr<PathNode> newNode, float h)
+    {
+        // set up path
+        path = oldBranch->path;
+        path.push_back(newNode);
+
+        // calculate g & f
+        glm::vec3 pos0 = oldBranch->path.back()->pos;
+        glm::vec3 pos1 = newNode->pos;
+        glm::vec3 dx(pos1 - pos0);
+
+        g = oldBranch->g + sqrt(dx.x * dx.x + dx.z * dx.z);
+        f = g + h;
+    }
+
+    std::vector< std::shared_ptr<PathNode> > path;
+    float g;
+    float f;
+};
+
 class PathGraph
 {
 public:
@@ -66,14 +84,13 @@ public:
     PathGraph(const std::shared_ptr<Scene> _scene, ProgInfo progs, std::string DATA_DIR = "", int _unitsPerNode = 20);
     PathGraph(const PathGraph &pg);
     virtual ~PathGraph();
+
     void regenerate();
     void regenerate(glm::vec3 start, glm::vec3 goal);
     void updateStart(glm::vec3 pos);
     void updateGoal(glm::vec3 pos);
+
     std::vector< glm::vec3 > findPath();
-    //void setSimpleProgram(std::shared_ptr<Program> p) { simpleProg = p; }
-    //void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
-    //std::shared_ptr<Shape> getShape() { return PmShape; }
 
     void draw(
         std::shared_ptr<MatrixStack> P,
@@ -84,22 +101,18 @@ public:
         bool drawPath = true
     );
 
-    ///////////////////////////////////////////////////
-    void clear35();
-    void printNodeData(std::shared_ptr<PathNode> node);
-    void printBranchData(std::shared_ptr<AStarBranch> b, std::string gap = std::string("    "));
-    ///////////////////////////////////////////////////
 private:
     std::vector< std::vector< std::shared_ptr<PathNode> > > nodes;
     std::shared_ptr<PathNode> start;
     std::shared_ptr<PathNode> goal;
-    //std::vector< std::shared_ptr<PathNode> > nodes;
+
+    std::shared_ptr<Shape> PmShape;
     std::shared_ptr<Scene> scene;
     float edgeLength;
     int unitsPerNode;
+
     std::shared_ptr<Program> simpleProg;
     std::shared_ptr<Program> shapeProg;
-    std::shared_ptr<Shape> PmShape;
 
     float randFloat(float l, float h);
     bool isClearPath(std::shared_ptr<PathNode> a, std::shared_ptr<PathNode> b);

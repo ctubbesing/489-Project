@@ -73,10 +73,8 @@ void Entity::init(const DataInput &dataInput)
         textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
     }
 
-    SkinInfo s(shapes, frames, bindPose, textureMap);
-    ent->setSkinInfo(s);
-    //ent->setSkin(eShape);//////////////////////////////////
-    ent->setPGProgs(progSimple, progShapes);
+    pg->setSimpleProgram(simpleProg);
+    pg->setShapeProgram(shapeProg);
     ent->setPGShape(pmShape);
 }
 
@@ -92,6 +90,7 @@ void Entity::loadDataInputFile(DataInput &dataInput)
     cout << "Loading " << filename << endl;
 
     string line;
+    string currentEntity = "";
     while (true) {
         getline(in, line);
         if (in.eof()) {
@@ -107,26 +106,32 @@ void Entity::loadDataInputFile(DataInput &dataInput)
         string key, value;
         stringstream ss(line);
         ss >> key;
-        if (key.compare("TEXTURE") == 0) {
-            ss >> value;
-            dataInput.textureData.push_back(value);
+        if (key.compare("ENTITY") == 0) {
+            ss >> currentEntity;
         }
-        else if (key.compare("MESH") == 0) {
-            vector<string> mesh;
-            ss >> value;
-            mesh.push_back(value); // obj filename
-            ss >> value;
-            mesh.push_back(value); // skin filename
-            ss >> value;
-            mesh.push_back(value); // texture filename
-            dataInput.meshData.push_back(mesh);
-        }
-        else if (key.compare("SKELETON") == 0) {
-            ss >> value;
-            dataInput.skeletonData.push_back(value);
-        }
-        else {
-            cout << "Unknown key word: " << key << endl;
+        else if (currentEntity.compare(dataInput.entityType) == 0) {
+            // this line is intended for this type of Entity
+            if (key.compare("TEXTURE") == 0) {
+                ss >> value;
+                dataInput.textureData.push_back(value);
+            }
+            else if (key.compare("MESH") == 0) {
+                vector<string> mesh;
+                ss >> value;
+                mesh.push_back(value); // obj filename
+                ss >> value;
+                mesh.push_back(value); // skin filename
+                ss >> value;
+                mesh.push_back(value); // texture filename
+                dataInput.meshData.push_back(mesh);
+            }
+            else if (key.compare("SKELETON") == 0) {
+                ss >> value;
+                dataInput.skeletonData.push_back(value);
+            }
+            else {
+                cout << "Unknown key word: " << key << endl;
+            }
         }
     }
 
@@ -253,13 +258,13 @@ void Entity::setGoal(glm::vec3 _goal)
 //    pg
 //}
 
-void Entity::setSkinInfo(SkinInfo &s)
-{
-    skins = s.skins;
-    frames = s.frames;
-    bindPose = s.bindPose;
-    textureMap = s.textureMap;
-}
+//void Entity::setSkinInfo(SkinInfo &s)
+//{
+//    skins = s.skins;
+//    frames = s.frames;
+//    bindPose = s.bindPose;
+//    textureMap = s.textureMap;
+//}
 
 float arcLength(float u_a, float u_b, glm::mat4 &B, glm::mat4 &G) {
     glm::vec4 uVec_a(1.0f, u_a, u_a*u_a, u_a*u_a*u_a);

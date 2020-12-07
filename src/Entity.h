@@ -35,7 +35,7 @@ public:
 
 struct DataInput
 {
-    //std::string entityType;
+    std::string entityType;
     std::string DATA_DIR;
     std::vector<std::string> textureData;
     std::vector< std::vector<std::string> > meshData;

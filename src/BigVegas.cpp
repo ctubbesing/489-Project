@@ -28,6 +28,7 @@ BigVegas::BigVegas(
     /////////////     create a child of Entity (e.g. BigVegas, Monster, Soldier) and hard-code the filenames into its
     /////////////     constructor. tbh idk which is the better way to do it
     DataInput dataInput;
+    dataInput.entityType = "BigVegas";
     dataInput.DATA_DIR = DATA_DIR;
     loadDataInputFile(dataInput);
     //DataInput dataInput = loadDataInputFile(DATA_DIR);

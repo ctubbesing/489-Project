@@ -13,11 +13,11 @@ class Entity;
 class MatrixStack;
 class Program;
 
-class Scene
+class Scene : std::enable_shared_from_this<Scene>
 {
 public:
     Scene();
-    Scene(float d, int n, bool flat = false);
+    Scene(float _edgeLength, int _edgeCells, bool flat = false, int unitsPerPGNode = 10, std::string _DATA_DIR = "");
     virtual ~Scene();
     void generateScene(bool flat = false);
     float getAltitude(glm::vec3 pos) { return terrain->getAltitude(pos); }
@@ -47,6 +47,8 @@ private:
     std::shared_ptr<Program> progShapes;
     std::shared_ptr<Program> progSkin;
     std::shared_ptr<Program> progTerrain;
+
+    std::string DATA_DIR;
 };
 
 #endif

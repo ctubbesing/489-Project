@@ -16,7 +16,7 @@ class Terrain : public Shape
 {
 public:
     Terrain();
-    Terrain(float d, int n, bool flat = false);
+    Terrain(float _edgeLength, int _edgeCells, bool flat = false);
     virtual ~Terrain();
     void init();
     void generateTerrain(bool flat = false);
@@ -24,7 +24,7 @@ public:
     float getAltitude(glm::vec3 pos);
     bool isObstacle(glm::vec3 pos);
     glm::vec3 getPoint(int x, int z = -1);
-    float getSize() { return edgeLength; }
+    float getEdgeLength() { return edgeLength; }
 
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV);
 

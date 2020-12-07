@@ -33,12 +33,12 @@ public:
     std::map< std::string, std::shared_ptr<Texture> > textureMap;
 };
 
-class DataInput
+struct DataInput
 {
-public:
-    vector<string> textureData;
-    vector< vector<string> > meshData;
-    vector<string> skeletonData;
+    std::string entityType;
+    std::vector<std::string> textureData;
+    std::vector< std::vector<std::string> > meshData;
+    std::vector<std::string> skeletonData;
 };
 
 class Entity
@@ -85,7 +85,8 @@ protected:
 
     double t, t0;
 
-    void loadSkeletonData(std::string entityType);
+    void loadDataInputFile(DataInput &dataInput);
+    void loadSkeletonData(const DataInput &dataInput);
     void generatePath();
 
     std::shared_ptr<PathGraph> pg;

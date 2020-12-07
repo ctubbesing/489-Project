@@ -28,9 +28,9 @@ Terrain::Terrain() :
     init();
 }
 
-Terrain::Terrain(float d, int n, bool flat) :
-    edgeLength(d),
-    edgeCells(n)
+Terrain::Terrain(float _edgeLength, int _edgeCells, bool flat) :
+    edgeLength(_edgeLength),
+    edgeCells(_edgeCells)
 {
     int nVerts = (edgeCells + 1)*(edgeCells + 1);///////////////////////////////////////////////// just the surface for now, not the side walls
     posBuf.clear();

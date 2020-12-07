@@ -37,7 +37,7 @@ class BigVegas : public Entity
 {
 public:
     BigVegas();
-    BigVegas(glm::vec3 _pos, const std::shared_ptr<Scene> _scene, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10);
+    BigVegas(glm::vec3 _pos, const std::shared_ptr<Scene> _scene, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10, std::string DATA_DIR = "");
     virtual ~BigVegas();
 };
     //void setSkinProgram(std::shared_ptr<Program> _prog) { progSkin = _prog; }

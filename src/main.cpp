@@ -28,13 +28,13 @@
 
 using namespace std;
 
-class DataInput
-{
-public:
-    vector<string> textureData;
-    vector< vector<string> > meshData;
-    vector<string> skeletonData;
-};
+//class DataInput
+//{
+//public:
+//    vector<string> textureData;
+//    vector< vector<string> > meshData;
+//    vector<string> skeletonData;
+//};
 
 DataInput dataInput;
 
@@ -46,25 +46,25 @@ string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
 int TERRAIN_CELLS = 50; // 100;
 int PG_UNITS_PER_NODE = 20;
-bool flatTerrain = false;
+bool DO_FLAT_TERRAIN = false;
 
 shared_ptr<Camera> camera = NULL;
 shared_ptr<Program> progSimple = NULL;
 shared_ptr<Program> progShapes = NULL;
 shared_ptr<Program> progTerrain = NULL;
 shared_ptr<Program> progSkin = NULL;
-map< string, shared_ptr<Texture> > textureMap;
 shared_ptr<Scene> scene = NULL;
-shared_ptr<Entity> ent;
-vector< shared_ptr<ShapeSkin> > shapes;
-vector<glm::mat4> bindPose;
-vector< vector< vector<glm::mat4> > > frames;
+shared_ptr<Entity> selectedEnt = NULL;
+//map< string, shared_ptr<Texture> > textureMap;
+//vector< shared_ptr<ShapeSkin> > shapes;
+//vector<glm::mat4> bindPose;
+//vector< vector< vector<glm::mat4> > > frames;
 double t, t0;
 double tMult = 1.0;
 
 ///////////////////////////////
-shared_ptr<Shape> pmShape;
-glm::vec3 testSpot(0.0f);
+//shared_ptr<Shape> pmShape;
+//glm::vec3 testSpot(0.0f);
 //shared_ptr<Shape> eShape;
 //shared_ptr<PathGraph> pg;
 //vector< shared_ptr<PathNode> > pgPath;
@@ -94,7 +94,7 @@ static void char_callback(GLFWwindow *window, unsigned int key)
     bool badPos, badGoal;
     switch (key) {
         case (unsigned)'p':
-            ent->regenPG(); /////////////////////////////////////////////////////////////////////// causes crash bad
+            selectedEnt->regenPG();
             break;
         case (unsigned)'s':
             //pos = glm::vec3(-45.156f, 0.0f, 43.152f);
@@ -104,7 +104,7 @@ static void char_callback(GLFWwindow *window, unsigned int key)
                 pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
                 badPos = scene->isObstacle(pos);
             }
-            ent->setPos(pos);
+            selectedEnt->setPos(pos);
             break;
         case (unsigned)'g':
             //pos = glm::vec3(-6.227f, 0.0f, -40.561f);
@@ -115,7 +115,7 @@ static void char_callback(GLFWwindow *window, unsigned int key)
                 badGoal = scene->isObstacle(goal);
             }
             //glm::vec3 goal = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
-            ent->setGoal(goal);
+            selectedEnt->setGoal(goal);
             break;
         case (unsigned)'x':
             tMult *= 2;
@@ -168,91 +168,91 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     }
 }
 
-void loadSkeletonData()
-{
-    for (int i = 0; i < dataInput.skeletonData.size(); i++) {
-        string filename = DATA_DIR + dataInput.skeletonData[i];
-        ifstream in;
-        in.open(filename);
-        if (!in.good()) {
-            cout << "Cannot read " << filename << endl;
-            return;
-        }
-        cout << "Loading " << filename << endl;
-
-        string line;
-        vector< vector<glm::mat4> > animation;
-        bool countsLoaded = false;
-        bool bindPoseLoaded = false;
-        int frameCount, boneCount;
-        int currentFrame = 0;
-        while (1) {
-            getline(in, line);
-            if (in.eof()) {
-                break;
-            }
-            if (line.empty()) {
-                continue;
-            }
-            // Skip comments
-            if (line.at(0) == '#') {
-                continue;
-            }
-            // Parse lines
-            stringstream ss(line);
-            if (!countsLoaded) { // load frameCount & boneCount
-                ss >> frameCount >> boneCount;
-                countsLoaded = true;
-            }
-            else if (!bindPoseLoaded) {
-                for (int bone = 0; bone < boneCount; bone++) {
-                    // load quaternion
-                    float qx, qy, qz, qw;
-                    ss >> qx >> qy >> qz >> qw;
-                    glm::quat q(qw, qx, qy, qz);
-
-                    // load translation vector
-                    float vx, vy, vz;
-                    ss >> vx >> vy >> vz;
-                    glm::vec3 v(vx, vy, vz);
-
-                    glm::mat4 E = glm::mat4_cast(q);
-                    E[3] = glm::vec4(v, 1.0f);
-
-                    bindPose.push_back(E);
-                }
-
-                bindPoseLoaded = true;
-            }
-            else { // load frame data
-                //frames[i].push_back(vector<glm::mat4>());
-                animation.push_back(vector<glm::mat4>());
-
-                for (int bone = 0; bone < boneCount; bone++) {
-                    // load quaternion
-                    float qx, qy, qz, qw;
-                    ss >> qx >> qy >> qz >> qw;
-                    glm::quat q(qw, qx, qy, qz);
-
-                    // load translation vector
-                    float vx, vy, vz;
-                    ss >> vx >> vy >> vz;
-                    glm::vec3 v(vx, vy, vz);
-
-                    glm::mat4 E = glm::mat4_cast(q);
-                    E[3] = glm::vec4(v, 1.0f);
-
-                    //frames[i][currentFrame].push_back(E);
-                    animation[currentFrame].push_back(E);
-                }
-
-                currentFrame++;
-            }
-        }
-        in.close();
-        frames.push_back(animation);
-    }
-}
+//void loadSkeletonData()
+//{
+//    for (int i = 0; i < dataInput.skeletonData.size(); i++) {
+//        string filename = DATA_DIR + dataInput.skeletonData[i];
+//        ifstream in;
+//        in.open(filename);
+//        if (!in.good()) {
+//            cout << "Cannot read " << filename << endl;
+//            return;
+//        }
+//        cout << "Loading " << filename << endl;
+//
+//        string line;
+//        vector< vector<glm::mat4> > animation;
+//        bool countsLoaded = false;
+//        bool bindPoseLoaded = false;
+//        int frameCount, boneCount;
+//        int currentFrame = 0;
+//        while (1) {
+//            getline(in, line);
+//            if (in.eof()) {
+//                break;
+//            }
+//            if (line.empty()) {
+//                continue;
+//            }
+//            // Skip comments
+//            if (line.at(0) == '#') {
+//                continue;
+//            }
+//            // Parse lines
+//            stringstream ss(line);
+//            if (!countsLoaded) { // load frameCount & boneCount
+//                ss >> frameCount >> boneCount;
+//                countsLoaded = true;
+//            }
+//            else if (!bindPoseLoaded) {
+//                for (int bone = 0; bone < boneCount; bone++) {
+//                    // load quaternion
+//                    float qx, qy, qz, qw;
+//                    ss >> qx >> qy >> qz >> qw;
+//                    glm::quat q(qw, qx, qy, qz);
+//
+//                    // load translation vector
+//                    float vx, vy, vz;
+//                    ss >> vx >> vy >> vz;
+//                    glm::vec3 v(vx, vy, vz);
+//
+//                    glm::mat4 E = glm::mat4_cast(q);
+//                    E[3] = glm::vec4(v, 1.0f);
+//
+//                    bindPose.push_back(E);
+//                }
+//
+//                bindPoseLoaded = true;
+//            }
+//            else { // load frame data
+//                //frames[i].push_back(vector<glm::mat4>());
+//                animation.push_back(vector<glm::mat4>());
+//
+//                for (int bone = 0; bone < boneCount; bone++) {
+//                    // load quaternion
+//                    float qx, qy, qz, qw;
+//                    ss >> qx >> qy >> qz >> qw;
+//                    glm::quat q(qw, qx, qy, qz);
+//
+//                    // load translation vector
+//                    float vx, vy, vz;
+//                    ss >> vx >> vy >> vz;
+//                    glm::vec3 v(vx, vy, vz);
+//
+//                    glm::mat4 E = glm::mat4_cast(q);
+//                    E[3] = glm::vec4(v, 1.0f);
+//
+//                    //frames[i][currentFrame].push_back(E);
+//                    animation[currentFrame].push_back(E);
+//                }
+//
+//                currentFrame++;
+//            }
+//        }
+//        in.close();
+//        frames.push_back(animation);
+//    }
+//}
 
 static void init()
 {
@@ -303,17 +303,17 @@ static void init()
     shapes[0]->init();
     ////////////////////////////////////////////////////*/
 
-    // Create skin shapes
-    for (const auto &mesh : dataInput.meshData) {
-        auto shape = make_shared<ShapeSkin>();
-        shapes.push_back(shape);
-        shape->setTextureMatrixType(mesh[0]);
-        shape->loadMesh(DATA_DIR + mesh[0]);
-        shape->loadAttachment(DATA_DIR + mesh[1]);
-        shape->setTextureFilename(mesh[2]);
-    }
+    //// Create skin shapes
+    //for (const auto &mesh : dataInput.meshData) {
+    //    auto shape = make_shared<ShapeSkin>();
+    //    shapes.push_back(shape);
+    //    shape->setTextureMatrixType(mesh[0]);
+    //    shape->loadMesh(DATA_DIR + mesh[0]);
+    //    shape->loadAttachment(DATA_DIR + mesh[1]);
+    //    shape->setTextureFilename(mesh[2]);
+    //}
     
-    loadSkeletonData();
+    //loadSkeletonData();
     
     // simple program
     progSimple = make_shared<Program>();
@@ -371,9 +371,9 @@ static void init()
     progSkin->addUniform("kdTex");
     progSkin->addUniform("T");
 
-    for (auto shape : shapes) {
-        shape->init();
-    }
+    //for (auto shape : shapes) {
+    //    shape->init();
+    //}
 
     /////////////////////////////////////////////////////////////////////
     pmShape = make_shared<Shape>();
@@ -383,11 +383,11 @@ static void init()
     pmShape->scale(1.5f);
     pmShape->init();
 
-    shared_ptr<Shape> eShape = make_shared<Shape>();
-    eShape->setProgram(progShapes);
-    eShape->loadMesh(DATA_DIR + "sphere2.obj");
-    eShape->scale(1.5f);
-    eShape->init();
+    //shared_ptr<Shape> eShape = make_shared<Shape>();
+    //eShape->setProgram(progShapes);
+    //eShape->loadMesh(DATA_DIR + "sphere2.obj");
+    //eShape->scale(1.5f);
+    //eShape->init();
 
     //pg = make_shared<PathGraph>(scene, PG_UNITS_PER_NODE);
     //pg->setSimpleProgram(progSimple);
@@ -404,7 +404,7 @@ static void init()
     /////////////////////////////////////////////////////////////////////
 
     // initialize scene
-    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, flatTerrain);
+    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, DO_FLAT_TERRAIN, PG_UNITS_PER_NODE, DATA_DIR);
     scene->setProgSimple(progSimple);
     scene->setProgShapes(progShapes);
     scene->setProgSkin(progSkin);
@@ -426,7 +426,7 @@ static void init()
     }
 
     // initialize entity
-    ent = make_shared<Entity>(glm::vec3(0.0f), scene, TERRAIN_SIZE, PG_UNITS_PER_NODE);
+    //ent = make_shared<Entity>(glm::vec3(0.0f), scene, TERRAIN_SIZE, PG_UNITS_PER_NODE);
     //ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
     ent->setSkinProgram(progSkin);
 
@@ -672,58 +672,58 @@ void render()
     GLSL::checkError(GET_FILE_LINE);
 }
 
-void loadDataInputFile()
-{
-    string filename = DATA_DIR + "input.txt";
-    ifstream in;
-    in.open(filename);
-    if (!in.good()) {
-        cout << "Cannot read " << filename << endl;
-        return;
-    }
-    cout << "Loading " << filename << endl;
-
-    string line;
-    while (true) {
-        getline(in, line);
-        if (in.eof()) {
-            break;
-        }
-
-        // skip empty or commented lines
-        if (line.empty() || line[0] == '#') {
-            continue;
-        }
-
-        // parse lines
-        string key, value;
-        stringstream ss(line);
-        ss >> key;
-        if (key.compare("TEXTURE") == 0) {
-            ss >> value;
-            dataInput.textureData.push_back(value);
-        }
-        else if (key.compare("MESH") == 0) {
-            vector<string> mesh;
-            ss >> value;
-            mesh.push_back(value); // obj filename
-            ss >> value;
-            mesh.push_back(value); // skin filename
-            ss >> value;
-            mesh.push_back(value); // texture filename
-            dataInput.meshData.push_back(mesh);
-        }
-        else if (key.compare("SKELETON") == 0) {
-            ss >> value;
-            dataInput.skeletonData.push_back(value);
-        }
-        else {
-            cout << "Unknown key word: " << key << endl;
-        }
-    }
-
-    in.close();
-}
+//void loadDataInputFile()
+//{
+//    string filename = DATA_DIR + "input.txt";
+//    ifstream in;
+//    in.open(filename);
+//    if (!in.good()) {
+//        cout << "Cannot read " << filename << endl;
+//        return;
+//    }
+//    cout << "Loading " << filename << endl;
+//
+//    string line;
+//    while (true) {
+//        getline(in, line);
+//        if (in.eof()) {
+//            break;
+//        }
+//
+//        // skip empty or commented lines
+//        if (line.empty() || line[0] == '#') {
+//            continue;
+//        }
+//
+//        // parse lines
+//        string key, value;
+//        stringstream ss(line);
+//        ss >> key;
+//        if (key.compare("TEXTURE") == 0) {
+//            ss >> value;
+//            dataInput.textureData.push_back(value);
+//        }
+//        else if (key.compare("MESH") == 0) {
+//            vector<string> mesh;
+//            ss >> value;
+//            mesh.push_back(value); // obj filename
+//            ss >> value;
+//            mesh.push_back(value); // skin filename
+//            ss >> value;
+//            mesh.push_back(value); // texture filename
+//            dataInput.meshData.push_back(mesh);
+//        }
+//        else if (key.compare("SKELETON") == 0) {
+//            ss >> value;
+//            dataInput.skeletonData.push_back(value);
+//        }
+//        else {
+//            cout << "Unknown key word: " << key << endl;
+//        }
+//    }
+//
+//    in.close();
+//}
 
 int main(int argc, char **argv)
 {
@@ -733,7 +733,7 @@ int main(int argc, char **argv)
     }
     RESOURCE_DIR = argv[1] + string("/");
     DATA_DIR = argv[2] + string("/");
-    loadDataInputFile();
+    //loadDataInputFile();
 	
 	// Set error callback.
 	glfwSetErrorCallback(error_callback);

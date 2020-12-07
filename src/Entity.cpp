@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 #include "Entity.h"
 #include "Shape.h"
@@ -47,6 +48,145 @@ Entity::Entity(glm::vec3 _pos, const shared_ptr<Scene> _scene, float sceneEdgeLe
 Entity::~Entity()
 {
 
+}
+
+void Entity::loadDataInputFile(DataInput &dataInput)
+{
+    string filename = DATA_DIR + "input.txt";
+    ifstream in;
+    in.open(filename);
+    if (!in.good()) {
+        cout << "Cannot read " << filename << endl;
+        return;
+    }
+    cout << "Loading " << filename << endl;
+
+    string line;
+    while (true) {
+        getline(in, line);
+        if (in.eof()) {
+            break;
+        }
+
+        // skip empty or commented lines
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        // parse lines
+        string key, value;
+        stringstream ss(line);
+        ss >> key;
+        if (key.compare("TEXTURE") == 0) {
+            ss >> value;
+            dataInput.textureData.push_back(value);
+        }
+        else if (key.compare("MESH") == 0) {
+            vector<string> mesh;
+            ss >> value;
+            mesh.push_back(value); // obj filename
+            ss >> value;
+            mesh.push_back(value); // skin filename
+            ss >> value;
+            mesh.push_back(value); // texture filename
+            dataInput.meshData.push_back(mesh);
+        }
+        else if (key.compare("SKELETON") == 0) {
+            ss >> value;
+            dataInput.skeletonData.push_back(value);
+        }
+        else {
+            cout << "Unknown key word: " << key << endl;
+        }
+    }
+
+    in.close();
+}
+
+void Entity::loadSkeletonData(const DataInput &dataInput)
+{
+    for (int i = 0; i < dataInput.skeletonData.size(); i++) {
+        string filename = DATA_DIR + dataInput.skeletonData[i];
+        ifstream in;
+        in.open(filename);
+        if (!in.good()) {
+            cout << "Cannot read " << filename << endl;
+            return;
+        }
+        cout << "Loading " << filename << endl;
+
+        string line;
+        vector< vector<glm::mat4> > animation;
+        bool countsLoaded = false;
+        bool bindPoseLoaded = false;
+        int frameCount, boneCount;
+        int currentFrame = 0;
+        while (1) {
+            getline(in, line);
+            if (in.eof()) {
+                break;
+            }
+            if (line.empty()) {
+                continue;
+            }
+            // Skip comments
+            if (line.at(0) == '#') {
+                continue;
+            }
+            // Parse lines
+            stringstream ss(line);
+            if (!countsLoaded) { // load frameCount & boneCount
+                ss >> frameCount >> boneCount;
+                countsLoaded = true;
+            }
+            else if (!bindPoseLoaded) {
+                for (int bone = 0; bone < boneCount; bone++) {
+                    // load quaternion
+                    float qx, qy, qz, qw;
+                    ss >> qx >> qy >> qz >> qw;
+                    glm::quat q(qw, qx, qy, qz);
+
+                    // load translation vector
+                    float vx, vy, vz;
+                    ss >> vx >> vy >> vz;
+                    glm::vec3 v(vx, vy, vz);
+
+                    glm::mat4 E = glm::mat4_cast(q);
+                    E[3] = glm::vec4(v, 1.0f);
+
+                    bindPose.push_back(E);
+                }
+
+                bindPoseLoaded = true;
+            }
+            else { // load frame data
+                //frames[i].push_back(vector<glm::mat4>());
+                animation.push_back(vector<glm::mat4>());
+
+                for (int bone = 0; bone < boneCount; bone++) {
+                    // load quaternion
+                    float qx, qy, qz, qw;
+                    ss >> qx >> qy >> qz >> qw;
+                    glm::quat q(qw, qx, qy, qz);
+
+                    // load translation vector
+                    float vx, vy, vz;
+                    ss >> vx >> vy >> vz;
+                    glm::vec3 v(vx, vy, vz);
+
+                    glm::mat4 E = glm::mat4_cast(q);
+                    E[3] = glm::vec4(v, 1.0f);
+
+                    //frames[i][currentFrame].push_back(E);
+                    animation[currentFrame].push_back(E);
+                }
+
+                currentFrame++;
+            }
+        }
+        in.close();
+        frames.push_back(animation);
+    }
 }
 
 void Entity::generatePath()

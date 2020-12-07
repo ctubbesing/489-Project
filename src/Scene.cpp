@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "Terrain.h"
 #include "Entity.h"
+#include "BigVegas.h"
 #include "Program.h"
 
 using namespace std;
@@ -10,9 +11,12 @@ Scene::Scene()
     terrain = make_shared<Terrain>();
 }
 
-Scene::Scene(float d, int n, bool flat)
+Scene::Scene(float edgeLength, int _edgeCells, bool flat, int unitsPerPGNode, string _DATA_DIR) :
+    DATA_DIR(_DATA_DIR)
 {
-    terrain = make_shared<Terrain>(d, n, flat);
+    terrain = make_shared<Terrain>(edgeLength, _edgeCells, flat);
+
+    entities.push_back(make_shared<BigVegas>(glm::vec3(0.0f), shared_from_this(), edgeLength, unitsPerPGNode, DATA_DIR));
 }
 
 Scene::~Scene()

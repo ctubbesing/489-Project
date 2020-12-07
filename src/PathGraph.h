@@ -24,7 +24,7 @@ class ProgInfo;
 struct AStarBranch;
 ////////////////////////////////////////////////
 
-class PathNode : std::enable_shared_from_this<PathNode>
+class PathNode : public std::enable_shared_from_this<PathNode>
 {
 public:
     PathNode(glm::vec3 pos_) : pos(pos_) {}
@@ -63,7 +63,8 @@ class PathGraph
 {
 public:
     PathGraph();
-    PathGraph(const std::shared_ptr<Scene> _scene, ProgInfo progs, std::string DATA_DIR, int _unitsPerNode = 10);
+    PathGraph(const std::shared_ptr<Scene> _scene, ProgInfo progs, std::string DATA_DIR = "", int _unitsPerNode = 20);
+    PathGraph(const PathGraph &pg);
     virtual ~PathGraph();
     void regenerate();
     void regenerate(glm::vec3 start, glm::vec3 goal);
@@ -72,9 +73,16 @@ public:
     std::vector< glm::vec3 > findPath();
     //void setSimpleProgram(std::shared_ptr<Program> p) { simpleProg = p; }
     //void setShapeProgram(std::shared_ptr<Program> p) { shapeProg = p; }
-    //void setShape(std::shared_ptr<Shape> shape) { PmShape = shape; }
+    //std::shared_ptr<Shape> getShape() { return PmShape; }
 
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, std::vector<glm::vec3> &path = std::vector<glm::vec3>(), bool drawFullPG = true, bool drawPath = true);
+    void draw(
+        std::shared_ptr<MatrixStack> P,
+        std::shared_ptr<MatrixStack> MV,
+        std::vector<glm::vec3> &path = std::vector<glm::vec3>(),
+        bool isSelected = false,
+        bool drawFullPG = true,
+        bool drawPath = true
+    );
 
     ///////////////////////////////////////////////////
     void clear35();

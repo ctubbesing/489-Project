@@ -42,6 +42,17 @@ PathGraph::PathGraph(const shared_ptr<Scene> _scene, ProgInfo progs, string DATA
     regenerate();
 }
 
+PathGraph::PathGraph(const PathGraph &pg) :
+    scene(pg.scene),
+    edgeLength(pg.edgeLength),
+    unitsPerNode(pg.unitsPerNode),
+    simpleProg(pg.simpleProg),
+    shapeProg(pg.shapeProg),
+    PmShape(pg.PmShape)
+{
+    regenerate();
+}
+
 PathGraph::~PathGraph()
 {
 
@@ -456,7 +467,7 @@ vector< glm::vec3 > PathGraph::findPath()
     return finalPath;
 }
 
-void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool drawFullPG, bool drawPath)
+void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool isSelected, bool drawFullPG, bool drawPath)
 {
     // --- draw normal nodes ---
     if (drawFullPG) {
@@ -579,7 +590,7 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
     }
     
     // goal
-    if (goal != NULL) {
+    if (goal != NULL && isSelected) {
         // draw shape
         shapeProg->bind();
         glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));

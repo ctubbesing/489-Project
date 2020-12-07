@@ -62,7 +62,7 @@ class PathGraph
 {
 public:
     PathGraph();
-    PathGraph(const std::shared_ptr<Scene> _scene, float _edgeLength = 100.0f, int _unitsPerNode = 10);
+    PathGraph(const std::shared_ptr<Scene> _scene, int _unitsPerNode = 10);
     virtual ~PathGraph();
     void regenerate();
     void regenerate(glm::vec3 start, glm::vec3 goal);

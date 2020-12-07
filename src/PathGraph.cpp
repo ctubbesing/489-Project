@@ -21,9 +21,9 @@ PathGraph::PathGraph()
 
 }
 
-PathGraph::PathGraph(const shared_ptr<Scene> _scene, float _edgeLength, int _unitsPerNode) :
+PathGraph::PathGraph(const shared_ptr<Scene> _scene, int _unitsPerNode) :
     scene(_scene),
-    edgeLength(_edgeLength),
+    edgeLength(_scene->getEdgeLength()),
     unitsPerNode(_unitsPerNode),
     start(make_shared<PathNode>(glm::vec3(0.0f))),
     goal(make_shared<PathNode>(glm::vec3(0.0f)))

@@ -16,10 +16,6 @@ Scene::Scene(float edgeLength, int _edgeCells, bool flat, int unitsPerPGNode, st
 {
     // create scene terrrain
     terrain = make_shared<Terrain>(edgeLength, _edgeCells, flat);
-
-    // create single BigVegas instance for scene
-    shared_ptr<Entity> initialVegas = make_shared<BigVegas>(glm::vec3(0.0f), shared_from_this(), edgeLength, unitsPerPGNode, DATA_DIR);
-    entities.push_back(initialVegas);
 }
 
 Scene::~Scene()
@@ -29,6 +25,10 @@ Scene::~Scene()
 
 void Scene::init()
 {
+    // create single BigVegas instance for scene
+    shared_ptr<Entity> initialVegas = make_shared<Entity>(glm::vec3(0.0f), shared_from_this(), edgeLength, unitsPerPGNode, DATA_DIR);
+    entities.push_back(initialVegas);
+
     for (auto entity : entities) {
         entity->setSkinProgram(progSkin);
         //entity->init();

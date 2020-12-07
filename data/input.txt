@@ -1,12 +1,12 @@
 # Each line starts with a keyword:
-# - ENTITY <entity type>
+# - ENTITY <entity type> <entity speed (units/sec)>
 # - TEXTURE <texture file>
 # - MESH <obj file> <skin file> <texture file>
 # - SKELETON <skeleton file>
 # Each TEXTURE, MESH, and SKELETON line is used by the most recently defined ENTITY.
 # Alpha blending is used to render the mouth, eyes, and brows. Since the brows mesh covers the eyes mesh,
 # the brows mesh should be rendered after the eyes mesh.
-ENTITY BigVegas
+ENTITY BigVegas 7.0
 TEXTURE file1.jpg
 TEXTURE MouthMAP.png
 MESH bigvegas_Walking_newVegas_Elvis_BodyGeo.obj bigvegas_Walking_newVegas_Elvis_BodyGeo_skin.txt file1.jpg

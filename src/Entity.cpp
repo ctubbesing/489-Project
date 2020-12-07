@@ -24,27 +24,39 @@ Entity::Entity() :
     //rot(0.0f),
     state(IDLE),
     currentFrame(0),
-    speed(7.0f),
     t(0),
     t0(0)
 {
     pg = make_shared<PathGraph>();
 }
 
-Entity::Entity(glm::vec3 _pos, const shared_ptr<Scene> _scene, shared_ptr<Program> _progSkin, float sceneEdgeLength, int unitsPerPGNode) :
+Entity::Entity(
+    string ENTITY_TYPE,
+    glm::vec3 _pos,
+    const shared_ptr<Scene> _scene,
+    shared_ptr<Program> _progSkin,
+    int unitsPerPGNode,
+    string DATA_DIR
+) :
     pos(_pos),
     scene(_scene),
     progSkin(_progSkin),
     goal(glm::vec3(0.0f)),
     rot(glm::identity<glm::mat4>()),
-    //rot(0.0f),
     state(IDLE),
     currentFrame(0),
-    speed(7.0f),
     t(0),
     t0(0)
 {
-    pg = make_shared<PathGraph>(scene, sceneEdgeLength, unitsPerPGNode);
+    pg = make_shared<PathGraph>(scene, unitsPerPGNode);
+
+    // load data from input.txt
+    DataInput dataInput;
+    dataInput.entityType = ENTITY_TYPE;
+    dataInput.DATA_DIR = DATA_DIR;
+    loadDataInputFile(dataInput);
+
+    init(dataInput);
 }
 
 Entity::~Entity()
@@ -54,6 +66,18 @@ Entity::~Entity()
 
 void Entity::init(const DataInput &dataInput)
 {
+    // Create skin shapes
+    for (const auto &mesh : dataInput.meshData) {
+        shared_ptr<ShapeSkin> shape = make_shared<ShapeSkin>();
+        skins.push_back(shape);
+        shape->setTextureMatrixType(mesh[0]);
+        shape->loadMesh(dataInput.DATA_DIR + mesh[0]);
+        shape->loadAttachment(dataInput.DATA_DIR + mesh[1]);
+        shape->setTextureFilename(mesh[2]);
+    }
+
+    loadSkeletonData(dataInput);
+
     for (auto skin : skins) {
         skin->init();
     }
@@ -67,7 +91,7 @@ void Entity::init(const DataInput &dataInput)
     for (const auto &filename : dataInput.textureData) {
         auto textureKd = make_shared<Texture>();
         textureMap[filename] = textureKd;
-        textureKd->setFilename(DATA_DIR + filename);
+        textureKd->setFilename(dataInput.DATA_DIR + filename);
         textureKd->init();
         textureKd->setUnit(unit); // Bind to unit 1
         textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
@@ -108,6 +132,7 @@ void Entity::loadDataInputFile(DataInput &dataInput)
         ss >> key;
         if (key.compare("ENTITY") == 0) {
             ss >> currentEntity;
+            ss >> speed;
         }
         else if (currentEntity.compare(dataInput.entityType) == 0) {
             // this line is intended for this type of Entity
@@ -138,10 +163,10 @@ void Entity::loadDataInputFile(DataInput &dataInput)
     in.close();
 }
 
-void Entity::loadSkeletonData(const DataInput &dataInput, string DATA_DIR)
+void Entity::loadSkeletonData(const DataInput &dataInput)
 {
     for (int i = 0; i < dataInput.skeletonData.size(); i++) {
-        string filename = DATA_DIR + dataInput.skeletonData[i];
+        string filename = dataInput.DATA_DIR + dataInput.skeletonData[i];
         ifstream in;
         in.open(filename);
         if (!in.good()) {

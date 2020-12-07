@@ -22,7 +22,8 @@ BigVegas::BigVegas(
 ) :
     Entity(_pos, _scene, _progSkin, sceneEdgeLength, unitsPerPGNode)
 {
-    // load data from input file
+    // define filenames used specifically by BigVegas model
+    ////////////////      starting to think input file method is better gonna focus on that
     DataInput dataInput;
     dataInput.DATA_DIR = DATA_DIR;
     loadDataInputFile(dataInput);

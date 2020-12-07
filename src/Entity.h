@@ -55,6 +55,7 @@ public:
         //std::shared_ptr<Program> _progSkin,
         std::string DATA_DIR = ""
     );
+    Entity(const Entity &ent);
     virtual ~Entity();
     //void setProgs(ProgInfo progs);
     void regenPG();
@@ -63,7 +64,7 @@ public:
     void setGoal(glm::vec3 _goal);
 
     void update(double _t);
-    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true, bool drawPath = true);
+    void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool isSelected = false, bool drawPG = false, bool drawPath = false);
 
 
 protected:

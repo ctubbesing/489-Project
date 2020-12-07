@@ -95,6 +95,23 @@ Entity::Entity(
     //ent->setPGShape(pmShape);
 }
 
+Entity::Entity(const Entity &ent) :
+    pos(ent.pos),
+    rot(ent.rot),
+    goal(ent.pos),
+    speed(ent.speed),
+    state(IDLE),
+    pg(make_shared<PathGraph>(*ent.pg)),
+    skins(ent.skins),
+    frames(ent.frames),
+    bindPose(ent.bindPose),
+    textureMap(ent.textureMap),
+    progSkin(ent.progSkin),
+    scene(ent.scene)
+{
+
+}
+
 Entity::~Entity()
 {
 
@@ -252,7 +269,14 @@ void Entity::generatePath()
     pg->updateStart(pos);
     pg->updateGoal(goal);
 
+    // keep trying A* search until a pathway becomes available
     path = pg->findPath();
+    while (path.size() == 0) {
+        cout << "Regenerating PathGraph to find valid path." << endl;
+        pg->regenerate(pos, goal);
+        path = pg->findPath();
+    }
+
     usTable.clear();
     state = TRAVELING;
     t = 0;
@@ -307,6 +331,7 @@ void Entity::update(double _t)
     t += dt;
     t0 = t1;
 
+    // update entity based on current state
     switch (state) {
         case IDLE:
             //cout << "Idle." << endl;
@@ -338,7 +363,6 @@ void Entity::update(double _t)
             B /= 2;
 
             // use arc-length parametrization to get u
-
             // generate u/s table if necessary
             int pathSegments = path.size();
             if (usTable.size() == 0) {
@@ -440,9 +464,9 @@ void Entity::update(double _t)
             pos = G_position * (B*uVec);
 
             // update rotation
-            if (pos != oldPos) {
-                glm::vec3 pos_flat(pos.x, 0.0f, pos.z);
-                glm::vec3 oldPos_flat(oldPos.x, 0.0f, oldPos.z);
+            glm::vec3 pos_flat(pos.x, 0.0f, pos.z);
+            glm::vec3 oldPos_flat(oldPos.x, 0.0f, oldPos.z);
+            if (pos_flat != oldPos_flat) {
                 rot = glm::inverse(glm::lookAt(pos_flat, oldPos_flat, glm::vec3(0.0f, 1.0f, 0.0f)));
             }
 
@@ -455,14 +479,15 @@ void Entity::update(double _t)
     currentFrame = ((int)floor(t*fps)) % frameCount;
 }
 
-void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool drawPG, bool drawPath)
+void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool isSelected, bool drawPG, bool drawPath)
 {
     // draw skin
     MV->pushMatrix();
     //MV->rotate(rot, glm::vec3(0.0f, 1.0f, 0.0f));
     pos.y = scene->getAltitude(pos);
     MV->translate(pos);
-    MV->scale(0.05f);
+    MV->scale((isSelected ? 0.06f : 0.05f));
+    //MV->scale(0.05f);
     MV->multMatrix(rot);
 
     for (const auto &shape : skins) {
@@ -510,5 +535,5 @@ void Entity::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, bool dr
     //skin->draw();
     
     //progSkin->unbind();
-    pg->draw(P, MV, path, drawPG, drawPath);
+    pg->draw(P, MV, path, isSelected, drawPG, drawPath);
 }

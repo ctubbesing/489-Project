@@ -376,12 +376,12 @@ static void init()
     //}
 
     /////////////////////////////////////////////////////////////////////
-    pmShape = make_shared<Shape>();
-    //shared_ptr<Shape> pmShape = make_shared<Shape>();
-    pmShape->setProgram(progShapes);
-    pmShape->loadMesh(DATA_DIR + "marker2.obj");
-    pmShape->scale(1.5f);
-    pmShape->init();
+    //pmShape = make_shared<Shape>();
+    ////shared_ptr<Shape> pmShape = make_shared<Shape>();
+    //pmShape->setProgram(progShapes);
+    //pmShape->loadMesh(DATA_DIR + "marker2.obj");
+    //pmShape->scale(1.5f);
+    //pmShape->init();
 
     //shared_ptr<Shape> eShape = make_shared<Shape>();
     //eShape->setProgram(progShapes);

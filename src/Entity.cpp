@@ -34,13 +34,13 @@ Entity::Entity(
     string ENTITY_TYPE,
     glm::vec3 _pos,
     const shared_ptr<Scene> _scene,
-    shared_ptr<Program> _progSkin,
-    int unitsPerPGNode,
+    ProgInfo progs,
+    //shared_ptr<Program> _progSkin,
     string DATA_DIR
 ) :
     pos(_pos),
     scene(_scene),
-    progSkin(_progSkin),
+    progSkin(progs.progSkin),
     goal(glm::vec3(0.0f)),
     rot(glm::identity<glm::mat4>()),
     state(IDLE),
@@ -48,7 +48,8 @@ Entity::Entity(
     t(0),
     t0(0)
 {
-    pg = make_shared<PathGraph>(scene, unitsPerPGNode);
+    // create PathGraph
+    pg = make_shared<PathGraph>(scene, progs, DATA_DIR);
 
     // load data from input.txt
     DataInput dataInput;
@@ -56,16 +57,8 @@ Entity::Entity(
     dataInput.DATA_DIR = DATA_DIR;
     loadDataInputFile(dataInput);
 
-    init(dataInput);
-}
+    //init(dataInput);
 
-Entity::~Entity()
-{
-
-}
-
-void Entity::init(const DataInput &dataInput)
-{
     // Create skin shapes
     for (const auto &mesh : dataInput.meshData) {
         shared_ptr<ShapeSkin> shape = make_shared<ShapeSkin>();
@@ -97,9 +90,14 @@ void Entity::init(const DataInput &dataInput)
         textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
     }
 
-    pg->setSimpleProgram(simpleProg);
-    pg->setShapeProgram(shapeProg);
-    ent->setPGShape(pmShape);
+    //pg->setSimpleProgram(simpleProg);
+    //pg->setShapeProgram(shapeProg);
+    //ent->setPGShape(pmShape);
+}
+
+Entity::~Entity()
+{
+
 }
 
 void Entity::loadDataInputFile(DataInput &dataInput)

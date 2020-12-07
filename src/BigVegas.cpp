@@ -19,8 +19,8 @@ BigVegas::BigVegas(
     float sceneEdgeLength,
     int unitsPerPGNode,
     string DATA_DIR
-) :
-    Entity(string("BigVegas"), _pos, _scene, _progSkin, unitsPerPGNode, DATA_DIR)
+)// :
+    //Entity(string("BigVegas"), _pos, _scene, _progSkin, unitsPerPGNode, DATA_DIR)
 {
     // load data from input file
     ///////////// !!! in input-file-method branch, this input file is what is used to customize which skin, skeleton,
@@ -32,7 +32,7 @@ BigVegas::BigVegas(
     dataInput.DATA_DIR = DATA_DIR;
     loadDataInputFile(dataInput);
 
-    init(dataInput);
+    //init(dataInput);
 }
 
 BigVegas::~BigVegas()

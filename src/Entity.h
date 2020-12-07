@@ -17,6 +17,7 @@ class ShapeSkin;
 class Program;
 class Shape;
 class Texture;
+class ProgInfo;
 
 //class SkinInfo {
 //public:
@@ -50,30 +51,16 @@ public:
         std::string ENTITY_TYPE,
         glm::vec3 _pos,
         const std::shared_ptr<Scene> _scene,
-        std::shared_ptr<Program> _progSkin,
-        int unitsPerPGNode = 10,
+        ProgInfo progs,
+        //std::shared_ptr<Program> _progSkin,
         std::string DATA_DIR = ""
     );
     virtual ~Entity();
-    //void setSkinProgram(std::shared_ptr<Program> _prog) { progSkin = _prog; }
-    //void setPG(std::shared_ptr<PathGraph> _pg) { pg = _pg; }
-    //void setSkin(std::shared_ptr<Shape> _skin) { skin = _skin; }//////////////////////////////////temp
-    //void setSkin(std::vector< std::shared_ptr<ShapeSkin> > &_skin) { skins = _skin; }
+    //void setProgs(ProgInfo progs);
     void regenPG();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    //void setPGProgs(std::shared_ptr<Program> simpleProg, std::shared_ptr<Program> shapeProg)
-    //{
-    //    pg->setSimpleProgram(simpleProg);
-    //    pg->setShapeProgram(shapeProg);
-    //}
-    //void setPGShape(std::shared_ptr<Shape> shape) { pg->setShape(shape); }
     void setPos(glm::vec3 _pos);
     void setGoal(glm::vec3 _goal);
-    //void setSkinInfo(SkinInfo &s);
-    //void speedUp() { speed += 3.0f; }
-    //void resetSpeed() { speed = 7.0f; }
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     void update(double _t);
     void draw(std::shared_ptr<MatrixStack> P, std::shared_ptr<MatrixStack> MV, bool drawPG = true, bool drawPath = true);
@@ -95,7 +82,7 @@ protected:
 
     void loadDataInputFile(DataInput &dataInput);
     void loadSkeletonData(const DataInput &dataInput);
-    void init(const DataInput &dataInput);
+    //void init(const DataInput &dataInput);
     void generatePath();
 
     std::shared_ptr<PathGraph> pg;

@@ -45,7 +45,7 @@ string RESOURCE_DIR = "";
 string DATA_DIR = "";
 float TERRAIN_SIZE = 100.0f;
 int TERRAIN_CELLS = 50; // 100;
-int PG_UNITS_PER_NODE = 20;
+//int PG_UNITS_PER_NODE = 20;
 bool DO_FLAT_TERRAIN = false;
 
 shared_ptr<Camera> camera = NULL;
@@ -97,8 +97,7 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             selectedEnt->regenPG();
             break;
         case (unsigned)'s':
-            //pos = glm::vec3(-45.156f, 0.0f, 43.152f);
-            glm::vec3 pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
+            glm::vec3 pos;// = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
             badPos = true;
             while (badPos) {
                 pos = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
@@ -107,7 +106,6 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             selectedEnt->setPos(pos);
             break;
         case (unsigned)'g':
-            //pos = glm::vec3(-6.227f, 0.0f, -40.561f);
             badGoal = true;
             glm::vec3 goal;
             while (badGoal) {
@@ -116,6 +114,15 @@ static void char_callback(GLFWwindow *window, unsigned int key)
             }
             //glm::vec3 goal = glm::vec3(randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2), 0.0f, randFloat(-TERRAIN_SIZE / 2, TERRAIN_SIZE / 2));
             selectedEnt->setGoal(goal);
+            break;
+        case (unsigned)'d':
+            selectedEnt = scene->addEntity();
+            break;
+        case (unsigned)'D':
+            selectedEnt = scene->deleteEntity();
+            break;
+        case (unsigned)'t':
+            selectedEnt = scene->selectEntity();
             break;
         case (unsigned)'x':
             tMult *= 2;
@@ -404,12 +411,12 @@ static void init()
     /////////////////////////////////////////////////////////////////////
 
     // initialize scene
-    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, DO_FLAT_TERRAIN, PG_UNITS_PER_NODE, DATA_DIR);
+    scene = make_shared<Scene>(TERRAIN_SIZE, TERRAIN_CELLS, DO_FLAT_TERRAIN, DATA_DIR);
     scene->setProgSimple(progSimple);
     scene->setProgShapes(progShapes);
     scene->setProgSkin(progSkin);
     scene->setProgTerrain(progTerrain);
-    scene->init();
+    selectedEnt = scene->init();
 
     //// Bind the texture to unit 1.
     //int unit = 1;
@@ -531,7 +538,7 @@ void render()
     progSimple->bind();
     glUniformMatrix4fv(progSimple->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
     glUniformMatrix4fv(progSimple->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
-    int n = ceil(TERRAIN_SIZE / PG_UNITS_PER_NODE);
+    int n = ceil(TERRAIN_SIZE / 20);// PG_UNITS_PER_NODE);
     float gridSizeHalf = TERRAIN_SIZE / 2;
     int gridNx = n + 1;
     int gridNz = n + 1;

@@ -35,7 +35,8 @@ public:
 
 struct DataInput
 {
-    std::string entityType;
+    //std::string entityType;
+    std::string DATA_DIR;
     std::vector<std::string> textureData;
     std::vector< std::vector<std::string> > meshData;
     std::vector<std::string> skeletonData;
@@ -45,9 +46,9 @@ class Entity
 {
 public:
     Entity();
-    Entity(glm::vec3 _pos, const std::shared_ptr<Scene> _scene, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10);
+    Entity(glm::vec3 _pos, const std::shared_ptr<Scene> _scene, std::shared_ptr<Program> _progSkin, float sceneEdgeLength = 100.0f, int unitsPerPGNode = 10);
     virtual ~Entity();
-    void setSkinProgram(std::shared_ptr<Program> _prog) { progSkin = _prog; }
+    //void setSkinProgram(std::shared_ptr<Program> _prog) { progSkin = _prog; }
     //void setPG(std::shared_ptr<PathGraph> _pg) { pg = _pg; }
     //void setSkin(std::shared_ptr<Shape> _skin) { skin = _skin; }//////////////////////////////////temp
     void setSkin(std::vector< std::shared_ptr<ShapeSkin> > &_skin) { skins = _skin; }
@@ -86,7 +87,8 @@ protected:
     double t, t0;
 
     void loadDataInputFile(DataInput &dataInput);
-    void loadSkeletonData(const DataInput &dataInput);
+    void loadSkeletonData(const DataInput &dataInput, std::string DATA_DIR);
+    void init(const DataInput &dataInput);
     void generatePath();
 
     std::shared_ptr<PathGraph> pg;

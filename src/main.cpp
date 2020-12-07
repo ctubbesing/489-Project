@@ -409,36 +409,37 @@ static void init()
     scene->setProgShapes(progShapes);
     scene->setProgSkin(progSkin);
     scene->setProgTerrain(progTerrain);
+    scene->init();
 
-        // Bind the texture to unit 1.
-    int unit = 1;
-    progSkin->bind();
-    glUniform1i(progSkin->getUniform("kdTex"), unit);
-    progSkin->unbind();
+    //// Bind the texture to unit 1.
+    //int unit = 1;
+    //progSkin->bind();
+    //glUniform1i(progSkin->getUniform("kdTex"), unit);
+    //progSkin->unbind();
 
-    for (const auto &filename : dataInput.textureData) {
-        auto textureKd = make_shared<Texture>();
-        textureMap[filename] = textureKd;
-        textureKd->setFilename(DATA_DIR + filename);
-        textureKd->init();
-        textureKd->setUnit(unit); // Bind to unit 1
-        textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
-    }
+    //for (const auto &filename : dataInput.textureData) {
+    //    auto textureKd = make_shared<Texture>();
+    //    textureMap[filename] = textureKd;
+    //    textureKd->setFilename(DATA_DIR + filename);
+    //    textureKd->init();
+    //    textureKd->setUnit(unit); // Bind to unit 1
+    //    textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
+    //}
 
     // initialize entity
     //ent = make_shared<Entity>(glm::vec3(0.0f), scene, TERRAIN_SIZE, PG_UNITS_PER_NODE);
     //ent->setSkinProgram(progShapes);////////////////////////////////////////////////////////////////////////////////////temp till shapeskin is better
-    ent->setSkinProgram(progSkin);
+    //ent->setSkinProgram(progSkin);
 
     //vector< vector< vector< glm::mat4 > > > f;
     //f.push_back(frames);
-    SkinInfo s(shapes, frames, bindPose, textureMap);
-    ent->setSkinInfo(s);
-    //ent->setSkin(eShape);//////////////////////////////////
-    ent->setPGProgs(progSimple, progShapes);
-    ent->setPGShape(pmShape);
+    //SkinInfo s(shapes, frames, bindPose, textureMap);
+    //ent->setSkinInfo(s);
+    ////ent->setSkin(eShape);//////////////////////////////////
+    //ent->setPGProgs(progSimple, progShapes);
+    //ent->setPGShape(pmShape);
 
-    scene->addEntity(ent);
+    //scene->addEntity(ent);
 
     
     // set background color
@@ -454,7 +455,7 @@ static void init()
     glfwSetTime(0.0);
     
     /////////////////////////////////////////////////////////////////////////////
-    testSpot.y = scene->getAltitude(testSpot);
+    //testSpot.y = scene->getAltitude(testSpot);
     /////////////////////////////////////////////////////////////////////////////
     
     GLSL::checkError(GET_FILE_LINE);

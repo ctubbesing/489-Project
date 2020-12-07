@@ -14,14 +14,25 @@ Scene::Scene()
 Scene::Scene(float edgeLength, int _edgeCells, bool flat, int unitsPerPGNode, string _DATA_DIR) :
     DATA_DIR(_DATA_DIR)
 {
+    // create scene terrrain
     terrain = make_shared<Terrain>(edgeLength, _edgeCells, flat);
 
-    entities.push_back(make_shared<BigVegas>(glm::vec3(0.0f), shared_from_this(), edgeLength, unitsPerPGNode, DATA_DIR));
+    // create single BigVegas instance for scene
+    shared_ptr<Entity> initialVegas = make_shared<BigVegas>(glm::vec3(0.0f), shared_from_this(), edgeLength, unitsPerPGNode, DATA_DIR);
+    entities.push_back(initialVegas);
 }
 
 Scene::~Scene()
 {
 
+}
+
+void Scene::init()
+{
+    for (auto entity : entities) {
+        entity->setSkinProgram(progSkin);
+        //entity->init();
+    }
 }
 
 void Scene::generateScene(bool flat)

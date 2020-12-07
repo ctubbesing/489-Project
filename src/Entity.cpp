@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "Entity.h"
 #include "Shape.h"
@@ -30,9 +31,10 @@ Entity::Entity() :
     pg = make_shared<PathGraph>();
 }
 
-Entity::Entity(glm::vec3 _pos, const shared_ptr<Scene> _scene, float sceneEdgeLength, int unitsPerPGNode) :
+Entity::Entity(glm::vec3 _pos, const shared_ptr<Scene> _scene, shared_ptr<Program> _progSkin, float sceneEdgeLength, int unitsPerPGNode) :
     pos(_pos),
     scene(_scene),
+    progSkin(_progSkin),
     goal(glm::vec3(0.0f)),
     rot(glm::identity<glm::mat4>()),
     //rot(0.0f),
@@ -50,9 +52,37 @@ Entity::~Entity()
 
 }
 
+void Entity::init(const DataInput &dataInput)
+{
+    for (auto skin : skins) {
+        skin->init();
+    }
+
+    // Bind the texture to unit 1.
+    int unit = 1;
+    progSkin->bind();
+    glUniform1i(progSkin->getUniform("kdTex"), unit);
+    progSkin->unbind();
+
+    for (const auto &filename : dataInput.textureData) {
+        auto textureKd = make_shared<Texture>();
+        textureMap[filename] = textureKd;
+        textureKd->setFilename(DATA_DIR + filename);
+        textureKd->init();
+        textureKd->setUnit(unit); // Bind to unit 1
+        textureKd->setWrapModes(GL_REPEAT, GL_REPEAT);
+    }
+
+    SkinInfo s(shapes, frames, bindPose, textureMap);
+    ent->setSkinInfo(s);
+    //ent->setSkin(eShape);//////////////////////////////////
+    ent->setPGProgs(progSimple, progShapes);
+    ent->setPGShape(pmShape);
+}
+
 void Entity::loadDataInputFile(DataInput &dataInput)
 {
-    string filename = DATA_DIR + "input.txt";
+    string filename = dataInput.DATA_DIR + "input.txt";
     ifstream in;
     in.open(filename);
     if (!in.good()) {
@@ -103,7 +133,7 @@ void Entity::loadDataInputFile(DataInput &dataInput)
     in.close();
 }
 
-void Entity::loadSkeletonData(const DataInput &dataInput)
+void Entity::loadSkeletonData(const DataInput &dataInput, string DATA_DIR)
 {
     for (int i = 0; i < dataInput.skeletonData.size(); i++) {
         string filename = DATA_DIR + dataInput.skeletonData[i];

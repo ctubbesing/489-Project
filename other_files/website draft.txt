@@ -1,0 +1,29 @@
+Project writeup
+
+Terrain Pathfinding Project
+
+For my project I created a scene of animated characters that walk around a terrain. They use pathfinding techniques to avoid walking into walls or off of cliffs as they make their way to their destination.
+
+I implemented 4 techniques that we discussed in class: entity skinning, A* pathfinding, Catmull-Rom splines, and arc-length parametrization. All of the code used in my project was either modified from previous assignments or newly written.
+
+Scene
+    The Scene class contains the terrain and all of the entities. It provides some high-level functions that allows the main function to select an entity and set its destination, as well as adding new entities to the scene or removing existing ones.
+
+Entity
+    The Entity class holds all of the information needed to draw an animated character in the scene. It uses a ShapeSkin object as the skinned character itself and loads in the texture, skeleton, and skin files to animate it. It also owns a PathGraph object that it uses to pathfind around the scene.
+    
+    Each entity has an IDLE state and a TRAVELING state. When idle, the entity stands still in its idle animation and waits for a goal to be set. Once it is given a position to move to, the entity switches to traveling mode and calculates a path from its current position to its goal. From the initially calculated path, which is simply a list of points to move to one after another, the entity constructs a Catmull-Rom spline curve so that its movements will be smooth as it walks. Using arc-length parametrization techniques, it builds a u-s table so that it can move at a constant speed from the start to the goal, regardless of how many individual curves the path is constructed from. This also allows the character's speed to be customized from the same input file that the skin information is read from, providing an easy way to customize all of the entity's characteristics from one location.
+
+PathGraph
+    The PathGraph is the graph of pathfinding nodes that each entity uses to calculate a path from start to goal. The nodes are arranged in a grid pattern that overlays the terrain, and then each individual node is given a random offset to create an evenly spaced web of randomized points.
+    
+    When the graph is created, it first lays down a full web of nodes and then removes any node connections that cross over obstacles and any nodes that are positioned on obstacles themselves. Obstacles are checked for by calling the terrain's isObstacle() function. After any obstructions are accounted for, the resulting web of connected nodes defines the total area able to be safely traversed by the character.
+    
+    The pathfinding algorithm built into the PathGraph class uses A* search. At the start of the algorithm, a tree of possible paths from node to node is created. The algorithm decides which node to follow based on a combination of the total distance covered up to that point and the minimum possible distance remaining to the goal. The heuristic used is the exact distance between the current position and the goal position, which is guaranteed to be no more than the distance from going node to node, so this algorithm will always find the shortest possible path.
+
+Terrain
+    The Terrain class provides the landscape of the scene. It is made from a grid of vertices generated in a similar way to how the PathGraph nodes are generated. First, the vertices are laid out in a flat, regular grid pattern. Then each vertex is shifted by a random offset to create a sheet of randomized but evenly distributed points. Then the height of each point is modified to create a 3D area. Finally, each point receives a small random boost to its height to create a more natural rough feel on the flat areas rather than having them be completely smooth. Currently, the shape of the landscape is hard-coded by telling different regions to be specific heights and providing simple functions to calculate the height of the points on the ramp areas. However, a more complex terrain generator could be created to generate interesting randimized scenery.
+    
+    The Terrain class connects its vertices with a sheet of triangles. The color of each triangle is decided in the fragment shader based on how "steep" it is. Shallower faces are colored green to indicate grass, but once they pass a certain threshold they change to gray to resemble rocky cliff faces. This threshold is also used to determine whether a triangle is an obstacle. By defining the steep parts as the obstacles of the scene, the program ensures that an entity will never pathfind into a wall or off a cliff, instead staying on the grassy parts.
+    
+    Along with the isObstacle() function, another very important function of the Terrain class is getAltitude(), which provides the altitude of the terrain at any given point. It achieves this by finding the triangle that the given point is on top of and then using Barycentric coordinates to calculate the altitude of the point from the altitudes of the triangle's corners. Since the vertices of the terrain are stored in a 2D array, the process of finding the right triangle is vastly simplified - given a point in space, the function converts the position values to array indices. Instead of having to check every triangle in the terrain, it has now narrowed its search to a maximum of 8 candidates centered on the vertex at these indices.

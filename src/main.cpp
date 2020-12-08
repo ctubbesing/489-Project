@@ -343,7 +343,7 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	// Create a windowed mode window and its OpenGL context.
-	window = glfwCreateWindow(1200, 900, "Connor Tubbesing", NULL, NULL);
+	window = glfwCreateWindow(1200, 900, "Terrain Pathfinding Scene by Connor Tubbesing", NULL, NULL);
 	if(!window) {
 		glfwTerminate();
 		return -1;

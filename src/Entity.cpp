@@ -118,7 +118,7 @@ void Entity::loadDataInputFile(DataInput &dataInput)
         cout << "Cannot read " << filename << endl;
         return;
     }
-    cout << "Loading " << filename << endl;
+    //cout << "Loading " << filename << endl;
 
     string line;
     string currentEntity = "";
@@ -180,7 +180,7 @@ void Entity::loadSkeletonData(const DataInput &dataInput)
             cout << "Cannot read " << filename << endl;
             return;
         }
-        cout << "Loading " << filename << endl;
+        //cout << "Loading " << filename << endl;
 
         string line;
         vector< vector<glm::mat4> > animation;

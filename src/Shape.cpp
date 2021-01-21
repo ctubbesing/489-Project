@@ -71,9 +71,6 @@ void Shape::loadObj(const string &filename, vector<float> &pos, vector<float> &n
             index_offset += fv;
         }
     }
-    cout << "posBuf size: " << posBuf.size() << endl;
-    cout << "norBuf size: " << norBuf.size() << endl;
-    cout << "texBuf size: " << texBuf.size() << endl;
 }
 
 void Shape::loadMesh(const string &meshName)

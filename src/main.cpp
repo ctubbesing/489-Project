@@ -330,12 +330,16 @@ void render()
 int main(int argc, char **argv)
 {
     if (argc < 3) {
-        cout << "Usage: A3 <SHADER DIR> <DATA DIR>" << endl;
-        return 0;
+        cout << "Usage: FinalProject.exe <SHADER DIR> <DATA DIR>" << endl;
+        cout << "Using default \"../resources ../data\"" << endl;
+        RESOURCE_DIR = string("../resources/");
+        DATA_DIR = string("../data/");
     }
-    RESOURCE_DIR = argv[1] + string("/");
-    DATA_DIR = argv[2] + string("/");
-	
+    else {
+        RESOURCE_DIR = argv[1] + string("/");
+        DATA_DIR = argv[2] + string("/");
+    }
+
 	// Set error callback.
 	glfwSetErrorCallback(error_callback);
 	// Initialize the library.

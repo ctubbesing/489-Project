@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-//#define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
 #include "ShapeSkin.h"
@@ -93,7 +92,7 @@ void ShapeSkin::loadAttachment(const std::string &filename)
         cout << "Cannot read " << filename << endl;
         return;
     }
-    cout << "Loading " << filename << endl;
+    //cout << "Loading " << filename << endl;
 
     string line;
     bool countsLoaded = false;

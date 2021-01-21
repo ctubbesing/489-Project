@@ -1,5 +1,4 @@
 #include "PathGraph.h"
-//#include "PathMarker.h"
 #include "Scene.h"
 #include "Program.h"
 #include "MatrixStack.h"
@@ -21,14 +20,32 @@ PathGraph::PathGraph()
 
 }
 
-PathGraph::PathGraph(const shared_ptr<Scene> _scene, float _edgeLength, int _unitsPerNode) :
+PathGraph::PathGraph(const shared_ptr<Scene> _scene, ProgInfo progs, string DATA_DIR, int _unitsPerNode) :
     scene(_scene),
-    edgeLength(_edgeLength),
+    edgeLength(_scene->getEdgeLength()),
     unitsPerNode(_unitsPerNode),
     start(make_shared<PathNode>(glm::vec3(0.0f))),
-    goal(make_shared<PathNode>(glm::vec3(0.0f)))
-    //start(NULL),
-    //goal(NULL)
+    goal(make_shared<PathNode>(glm::vec3(0.0f))),
+    simpleProg(progs.progSimple),
+    shapeProg(progs.progShapes)
+{
+    // load shape from file
+    PmShape = make_shared<Shape>();
+    PmShape->setProgram(progs.progShapes);
+    PmShape->loadMesh(DATA_DIR + "marker2.obj");
+    PmShape->scale(1.5f);
+    PmShape->init();
+
+    regenerate();
+}
+
+PathGraph::PathGraph(const PathGraph &pg) :
+    scene(pg.scene),
+    edgeLength(pg.edgeLength),
+    unitsPerNode(pg.unitsPerNode),
+    simpleProg(pg.simpleProg),
+    shapeProg(pg.shapeProg),
+    PmShape(pg.PmShape)
 {
     regenerate();
 }
@@ -46,6 +63,7 @@ float PathGraph::randFloat(float l, float h)
 
 bool PathGraph::isClearPath(shared_ptr<PathNode> a, shared_ptr<PathNode> b)
 {
+    // determine whether path between two nodes is obstacle-free
     glm::vec3 a2b = b->pos - a->pos;
     float l = glm::length(a2b);
 
@@ -64,18 +82,12 @@ bool PathGraph::isClearPath(shared_ptr<PathNode> a, shared_ptr<PathNode> b)
 
 void PathGraph::regenerate()
 {
-    //cout << "Regenerating PathGraph." << endl;
-    //cout << "start:" << endl;
-    //printNodeData(start);
-    //cout << "goal:" << endl;
-    //printNodeData(goal);
-
     nodes.clear();
 
-    //float edgeLength = scene->getSize();
     int n = ceil(edgeLength / unitsPerNode);
     float dx = edgeLength / n;
 
+    // set each node position to a new random value
     float pos0 = -edgeLength / 2 + dx / 2;
     for (int i = 0; i < n; i++) {
         vector < shared_ptr<PathNode> > thisRow(n);
@@ -143,13 +155,6 @@ void PathGraph::regenerate()
     if (goal != NULL) {
         updateGoal(goal->pos);
     }
-
-    //cout << "Done regenerating PathGraph." << endl;
-    //cout << "start:" << endl;
-    //printNodeData(start);
-    //cout << "goal:" << endl;
-    //printNodeData(goal);
-    //cout << endl;
 }
 
 void PathGraph::regenerate(glm::vec3 _start, glm::vec3 _goal)
@@ -165,42 +170,10 @@ void PathGraph::regenerate(glm::vec3 _start, glm::vec3 _goal)
     goal->pos = _goal;
 
     regenerate();
-
-    //updateStart(start_);
-    //updateGoal(goal_);
-}
-
-void PathGraph::printNodeData(shared_ptr<PathNode> node)
-{
-    if (node == NULL) {
-        cout << "    Node == NULL" << endl;
-        return;
-    }
-    else {
-        cout << "    Node == " << node << endl;
-    }
-
-    cout << "    Node has " << node->neighbors.size() << " neighbors." << endl;
-    for (auto neighbor : node->neighbors) {
-        cout << "    - " << neighbor;
-        if (neighbor == start) {
-            cout << " (START)";
-        }
-        else if (neighbor == goal) {
-            cout << " (GOAL)";
-        }
-        cout << endl;
-    }
 }
 
 void PathGraph::updateStart(glm::vec3 pos)
 {
-    //cout << "Updating start." << endl;
-    //cout << "start:" << endl;
-    //printNodeData(start);
-    //cout << "goal:" << endl;
-    //printNodeData(goal);
-
     // update old start
     if (start != NULL) {
         start->clearNeighbors();
@@ -213,7 +186,6 @@ void PathGraph::updateStart(glm::vec3 pos)
     }
 
     // link to new neighbors
-    //float edgeLength = scene->getSize();
     int n = ceil(edgeLength / unitsPerNode);
     float dx = edgeLength / n;
 
@@ -222,32 +194,17 @@ void PathGraph::updateStart(glm::vec3 pos)
 
     shared_ptr<PathNode> mainNode = nodes[row][col];
     for (auto node : mainNode->neighbors) {
-        //start->addNeighbor(node);
         if (isClearPath(start, node)) {
             start->addNeighbor(node);
         }
     }
-    //start->addNeighbor(mainNode);
     if (isClearPath(start, mainNode)) {
         start->addNeighbor(mainNode);
     }
-
-    //cout << "Done updating start." << endl;
-    //cout << "start:" << endl;
-    //printNodeData(start);
-    //cout << "goal:" << endl;
-    //printNodeData(goal);
-    //cout << endl;
 }
 
 void PathGraph::updateGoal(glm::vec3 pos)
 {
-    //cout << "Updating goal." << endl;
-    //cout << "start:" << endl;
-    //printNodeData(start);
-    //cout << "goal:" << endl;
-    //printNodeData(goal);
-
     // update old goal
     if (goal != NULL) {
         goal->clearNeighbors();
@@ -260,7 +217,6 @@ void PathGraph::updateGoal(glm::vec3 pos)
     }
 
     // link to new neighbors
-    //float edgeLength = scene->getSize();
     int n = ceil(edgeLength / unitsPerNode);
     float dx = edgeLength / n;
 
@@ -269,7 +225,6 @@ void PathGraph::updateGoal(glm::vec3 pos)
 
     shared_ptr<PathNode> mainNode = nodes[row][col];
     for (auto node : mainNode->neighbors) {
-        //goal->addNeighbor(node);
         if (isClearPath(goal, node)) {
             goal->addNeighbor(node);
         }
@@ -278,54 +233,7 @@ void PathGraph::updateGoal(glm::vec3 pos)
     if (isClearPath(goal, mainNode)) {
         goal->addNeighbor(mainNode);
     }
-
-    //cout << "Done updating goal." << endl;
-    //cout << "start:" << endl;
-    //printNodeData(start);
-    //cout << "goal:" << endl;
-    //printNodeData(goal);
-    //cout << endl;
 }
-
-////////////////////////////////////////////////////////////
-void PathGraph::clear35(){
-    nodes[3][5]->clearNeighbors();
-    nodes[3][5] = nullptr;
-}
-////////////////////////////////////////////////////////////
-
-// struct for A* to track branches
-struct AStarBranch
-{
-    AStarBranch(shared_ptr<PathNode> start) : g(0), f(0)
-    {
-        path.push_back(start);
-    }
-
-    AStarBranch(shared_ptr<AStarBranch> oldBranch, shared_ptr<PathNode> newNode, float h)
-    {
-        // set up path
-        path = oldBranch->path;
-        path.push_back(newNode);
-
-        // calculate g & f
-        glm::vec3 pos0 = oldBranch->path.back()->pos;
-        glm::vec3 pos1 = newNode->pos;
-        glm::vec3 dx(pos1 - pos0);
-
-        g = oldBranch->g + sqrt(dx.x * dx.x + dx.z * dx.z);
-        //g = oldBranch->g + (dx.x * dx.x + dx.z * dx.z);//////////////////////////////////////////////////////////////////////////////////////////////////
-        f = g + h;
-    }
-
-    std::vector< std::shared_ptr<PathNode> > path;
-
-    // g(n) = (total distance traveled)^2
-    // h(n) = (direct distance to goal)^2
-    // f(n) = g(n) + h(n)
-    float g;
-    float f;
-};
 
 // struct for priority queue to order elements
 struct BranchCompare
@@ -336,56 +244,17 @@ struct BranchCompare
     }
 };
 
-void PathGraph::printBranchData(shared_ptr<AStarBranch> b, string gap)
-{
-    string gap2 = "    ";
-    string str = "  - ";
-    cout << gap << "  Printing data for branch " << b << endl;
-
-    cout << gap << str << "g = " << b->g << endl;
-    cout << gap << str << "f = " << b->f << endl;
-    cout << gap << str << "path: " << endl;
-    for (auto node : b->path) {
-        //float edgeLength = scene->getSize();
-        int n = ceil(edgeLength / unitsPerNode);
-        float dx = edgeLength / n;
-
-        int row = floor((node->pos.z + edgeLength / 2) / dx);
-        int col = floor((node->pos.x + edgeLength / 2) / dx);
-
-        cout << gap << gap2 << str << "(" << row << ", " << col << ")";
-        if (node == start) {
-            cout << " [start]";
-        }
-        if (node == goal) {
-            cout << " [goal]";
-        }
-        cout << endl;
-    }
-}
-
 vector< glm::vec3 > PathGraph::findPath()
 {
-    bool doOut = false;
-    string str = "    ";
-    if (doOut)cout << "------------------------------------------------" << endl;
-    if (doOut)cout << str << "Starting findPath()." << endl;
-
     // return empty path if start or goal is not available
     if (start == NULL || goal == NULL) {
-        if (doOut)cout << str << "Either start or goal is unavailable; exiting." << endl;
-        if (doOut)cout << "------------------------------------------------" << endl << endl;
         return vector<glm::vec3>();
     }
 
     // do A* search from start to goal
     priority_queue<shared_ptr<AStarBranch>, vector< shared_ptr<AStarBranch> >, BranchCompare> pq;
     shared_ptr<AStarBranch> currentBranch = make_shared<AStarBranch>(start);
-    if (doOut)cout << str << "currentBranch at the beginning:" << endl;
-    if (doOut)printBranchData(currentBranch);
     while (currentBranch->path.back() != goal) {
-        if (doOut)cout << str << "Beginning while loop." << endl;
-
         // expand current branch
         for (auto node : currentBranch->path.back()->neighbors) {
             // avoid loops in the path
@@ -400,43 +269,25 @@ vector< glm::vec3 > PathGraph::findPath()
             if (!isVisited) {
                 glm::vec3 dx(goal->pos - node->pos);
                 float h = sqrt(dx.x * dx.x + dx.z * dx.z);
-                //float h = dx.x * dx.x + dx.z * dx.z;
                 shared_ptr<AStarBranch> newBranch = make_shared<AStarBranch>(currentBranch, node, h);
                 pq.push(newBranch);
-                if (doOut)cout << str << str << "goal->pos = (" << goal->pos.x << ", " << goal->pos.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
-                //if (doOut)cout << str << str << "dx = (" << dx.x << ", " << dx.z << "), node->pos = (" << node->pos.x << ", " << node->pos.z << "), h = " << h << endl;
-                if (doOut)cout << str << str << "Adding branch to pq." << endl;
-                if (doOut)printBranchData(newBranch, string("        "));
             }
         }
 
         // go to next branch in pq
         if (!pq.empty()) {
             currentBranch = pq.top();
-            if (doOut)cout << str << "selected next branch to follow:" << endl;
-            if (doOut)printBranchData(currentBranch);
             pq.pop();
-            if (doOut)cout << str << "^^^ Popped that branch from pq." << endl;
         }
         else {
-            if (doOut)cout << str << "!!! pq is empty; exiting while loop." << endl;
             break;
         }
-        if (doOut)cout << endl;
     }
 
     if (currentBranch->path.back() != goal) {
         // no path from start to goal exists
-        cout << "PathGraph::findPath(): No path from start to goal exists." << endl;
-        if (doOut)cout << str << endl << "Exiting findPath()." << endl;
-        if (doOut)cout << "------------------------------------------------" << endl;
         return vector<glm::vec3>();
     }
-
-    if (doOut)cout << str << " !!!! Optimal branch selected !!!!" << endl;
-    if (doOut)printBranchData(currentBranch);
-    if (doOut)cout << str << endl << "Exiting findPath()." << endl;
-    if (doOut)cout << "------------------------------------------------" << endl << endl << endl;
 
     // convert branch path to vector of glm::vec3
     vector<glm::vec3> finalPath;
@@ -447,14 +298,12 @@ vector< glm::vec3 > PathGraph::findPath()
     return finalPath;
 }
 
-void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool drawFullPG, bool drawPath)
+void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vector<glm::vec3> &path, bool isSelected, bool drawFullPG, bool drawPath)
 {
     // --- draw normal nodes ---
     if (drawFullPG) {
         shapeProg->bind();
 
-        //glUniform3f(shapeProg->getUniform("kd"), 0.2f, 0.5f, 0.6f);
-        //glUniform3f(shapeProg->getUniform("ka"), 0.5f, 0.05f, 0.06f);
         glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 
         float rW = 0.6f;
@@ -470,8 +319,6 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
             auto nodeRow = nodes[i];
             for (auto node : nodeRow) {
                 if (node != NULL) {
-                    ////////////////////////////////////////////////////////////////
-
                     for (glm::vec3 pathPos : path) {
                         if (node->pos == pathPos) {
                             glUniform3f(shapeProg->getUniform("ka"), 0.3f, 0.0f, 0.0f);
@@ -483,8 +330,6 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
                             glUniform3f(shapeProg->getUniform("kd"), rW*randColor, gW*randColor, bW*randColor);
                         }
                     }
-                    ////////////////////////////////////////////////////////////////
-
 
                     MV->pushMatrix();
 
@@ -514,9 +359,6 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         glBegin(GL_LINES);
         for (int i = 0; i < nodes.size(); ++i) {
             for (int j = 0; j < nodes[i].size(); j++) {
-                //float alpha = i / (gridNx - 1.0f);
-                //float x = (1.0f - alpha) * (-gridSizeHalf) + alpha * gridSizeHalf;
-
                 auto node = nodes[i][j];
                 if (node != NULL) {
                     glm::vec3 pos0 = node->pos;
@@ -552,25 +394,10 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         MV->popMatrix();
 
         shapeProg->unbind();
-
-        // draw links
-        //simpleProg->bind();
-        //glLineWidth(8);
-        //glColor3f(0.9f, 0.9f, 0.0f);
-        //glBegin(GL_LINES);
-        //glm::vec3 pos0 = start->pos;
-        //for (auto neighbor : start->neighbors) {
-        //    glm::vec3 pos1 = neighbor->pos;
-
-        //    glVertex3f(pos0.x, pos0.y, pos0.z);
-        //    glVertex3f(pos1.x, pos1.y, pos1.z);
-        //}
-        //glEnd();
-        //simpleProg->unbind();
     }
     
     // goal
-    if (goal != NULL) {
+    if (goal != NULL && isSelected) {
         // draw shape
         shapeProg->bind();
         glUniformMatrix4fv(shapeProg->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
@@ -585,21 +412,6 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
         MV->popMatrix();
 
         shapeProg->unbind();
-
-        //// draw links
-        //simpleProg->bind();
-        //glLineWidth(8);
-        //glColor3f(0.0f, 0.9f, 0.0f);
-        //glBegin(GL_LINES);
-        //glm::vec3 pos0 = goal->pos;
-        //for (auto neighbor : goal->neighbors) {
-        //    glm::vec3 pos1 = neighbor->pos;
-
-        //    glVertex3f(pos0.x, pos0.y, pos0.z);
-        //    glVertex3f(pos1.x, pos1.y, pos1.z);
-        //}
-        //glEnd();
-        //simpleProg->unbind();
     }
     
     // --- draw provided path ---
@@ -609,13 +421,6 @@ void PathGraph::draw(shared_ptr<MatrixStack> P, shared_ptr<MatrixStack> MV, vect
             glLineWidth(15);
             glColor3f(0.8f, 0.4f, 0.4f);
             glBegin(GL_LINE_STRIP);
-            //for (int i = 0; i < path.size() - 1; i++) {
-            //    glm::vec3 pos0 = path[i]->pos;
-            //    glm::vec3 pos1 = path[i + 1]->pos;
-
-            //    glVertex3f(pos0.x, pos0.y, pos0.z);
-            //    glVertex3f(pos1.x, pos1.y, pos1.z);
-            //}
             for (glm::vec3 node : path) {
                 glVertex3f(node.x, node.y, node.z);
             }
